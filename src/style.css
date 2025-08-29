@@ -1,1 +1,6 @@
 @import "tailwindcss";
+
+@theme {
+    --gradient-primary-start: #6886fc;
+    --gradient-primary-end: #6958fb;
+}
