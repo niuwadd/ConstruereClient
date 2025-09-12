@@ -7,12 +7,18 @@
         <li v-for="item in agentList" class="size-8 sm:size-10" :class="item.isActive ? '' : 'opacity-50'">
           <img :src="item.icon" alt="" />
         </li>
+        <li class="size-[40px] flex justify-center items-center rounded-full bg-white/50"
+          @click="currentAgent && (currentAgent.isActive = !currentAgent.isActive)">
+          <Plus class="size-[60%]" />
+        </li>
       </ul>
       <div class="flex flex-col gap-2 portrait:flex-row">
         <div class="size-[40px] flex justify-center items-center rounded-full bg-white/50">
           <Settings class="size-[60%]" />
         </div>
-        <div class="size-[40px] rounded-full bg-white/50"></div>
+        <div class="size-[40px] rounded-full bg-white/50">
+          <img :src="Avatar">
+        </div>
       </div>
     </div>
     <!-- 3d 模型 -->
@@ -20,19 +26,13 @@
     </div> -->
     <!-- 卡片 -->
     <div
-      class="flex flex-col gap-4 relative px-8 py-4 w-[380px] min-w-[320px] landscape:overflow-auto portrait:w-full portrait:self-center">
+      class="container flex flex-col gap-4 relative px-8 py-4 w-[380px] min-w-[240px] landscape:overflow-auto portrait:w-full portrait:self-center">
       <h2 class="text-center text-lg font-bold">{{ currentAgent?.title }}</h2>
       <!-- 设备卡片 -->
-      <div class="rounded-4xl shadow-[0_0_10px_4px_rgba(0,0,0,0.1)] relative px-1 pb-1">
-        <div class="flex justify-end p-3">
-          <div @click="currentAgent && (currentAgent.isActive = !currentAgent.isActive)"
-            class="size-[30px] rounded-full bg-white flex justify-center items-center">
-            <Plus />
-          </div>
-        </div>
-        <div class="flex flex-col gap-2 bg-white rounded-4xl py-4 px-6">
-          <div class="min-h-[140px] relative">
-            <img class="bot-img w-[180px] absolute -top-12 left-[50%] transform-[translateX(-50%)]"
+      <div class="rounded-4xl shadow-[0_0_10px_4px_rgba(0,0,0,0.1)] relative p-1 mt-20">
+        <div class="flex flex-col gap-2 rounded-4xl py-4 px-6">
+          <div class="min-h-[120px] relative">
+            <img class="bot-img w-[180px] absolute -top-24 left-[50%] transform-[translateX(-50%)]"
               :src="currentAgent?.icon" alt="">
             </img>
           </div>
@@ -41,23 +41,22 @@
             <p>{{ currentAgent?.title_1 }}</p>
           </div>
           <p class="text-sm font-bold text-gray-500 relative z-[2]">{{ currentAgent?.description }}</p>
-          <!-- <div class="absolute inset-0 top-[40%] backdrop-blur-[2px]"></div> -->
-          <div class="flex gap-4 justify-between">
-            <div class="flex flex-col gap-2 items-center relative">
-              <img :src="Examination_0" alt=""></img>
-              <p class="absolute bottom-2 font-bold text-gray-500">摄像头</p>
-            </div>
-            <div class="flex flex-col gap-2 items-center relative">
-              <img :src="Fitness_band_0" alt=""></img>
-              <p class="absolute bottom-2 font-bold text-gray-500">运动手环</p>
+          <div class="w-full relative whitespace-nowrap overflow-hidden" ref="hardwareScrollRef">
+            <div class="inline-block">
+              <div class="relative inline-block size-[120px] pr-2" v-for="item in hardwareDataList" :key="item.name">
+                <div class="size-full rounded-2xl overflow-hidden bg-[#fbfbfb]">
+                  <img class="" :src="item.data ? item.data.value : item.icon" alt=""></img>
+                </div>
+                <p class="absolute bottom-2 left-[50%] transform-[translateX(-50%)] text-sm font-bold text-gray-500">
+                  {{ item.name }}</p>
+              </div>
             </div>
           </div>
         </div>
-
       </div>
       <!-- 设备列表 -->
       <Transition v-if="screenOrientation" name="control" mode="out-in">
-        <div v-show="currentAgent && currentAgent.isActive" class="flex justify-between mt-auto">
+        <div v-show="currentAgent" class="flex justify-between mt-auto">
           <div v-for="item in hardwareList" class="bg-white rounded-full p-2"
             :class="item.isActive ? 'animate-bounce' : ''">
             <img class="w-[30px]" :src="item.icon" alt="">
@@ -69,12 +68,13 @@
     <MessageList class="px-8" v-if="!screenOrientation" :agentMessageList="agentMessageList" />
     <!-- 横屏出现 -->
     <div v-if="screenOrientation"
-      class="flex flex-col flex-1 rounded-l-4xl bg-white/25 p-8 text-2xl font-bold relative">
-      <div class="absolute top-0 z-[2] w-full py-4 backdrop-blur-[2px]">
-        <h2 class="text-center text-lg">当前对话</h2>
+      class="flex flex-col flex-1 min-w-[50%] rounded-l-4xl bg-white/25 p-8 text-2xl font-bold relative">
+      <div class="absolute top-0 z-[2] flex justify-center items-center gap-4 w-full py-4 backdrop-blur-[2px]">
+        <h2 @click="updateScroll" class="text-center text-lg">当前对话</h2>
+        <!-- <Refresh class="size-5" /> -->
       </div>
       <div ref="scrollRef" class="min-h-[200px] flex-1 overflow-hidden">
-        <MessageList class="pt-8 pb-24" :agentMessageList="agentMessageList" />
+        <MessageList class="pt-8 pb-24" :agentMessageList="agentMessageList" @imageLoad="handleImageLoad" />
       </div>
       <div class="absolute bottom-0 z-[2] w-full py-4 backdrop-blur-[2px] flex justify-center">
         <div class="relative">
@@ -115,11 +115,11 @@
 <script lang="ts" setup>
 import { ref, onMounted, watchEffect, nextTick, reactive, watch } from 'vue'
 import Examination_0 from '@/assets/image/examination_0.png'
-// import Examination_1 from '@/assets/image/examination_1.png'
+import Temperature_0 from '@/assets/image/temperature_0.png'
+import Emergency_number_0 from '@/assets/image/emergency_number_0.png'
+import Hospital_0 from '@/assets/image/hospital_0.png'
 import Fitness_band_0 from '@/assets/image/fitness_band_0.png'
-// import Fitness_band_1 from '@/assets/image/fitness_band_1.png'
 import Camera_1 from '@/assets/image/camera_1.png'
-import Thermometer_1 from '@/assets/image/thermometer_1.png'
 import Navigation_1 from '@/assets/image/navigation_1.png'
 import Phone_1 from '@/assets/image/phone_1.png'
 import Component from '@/assets/image/component.png'
@@ -128,51 +128,52 @@ import Agent_medical from '@/assets/image/agent_medical.png'
 import Agent_repair from '@/assets/image/agent_repair.png'
 import Agent_takeout from '@/assets/image/agent_takeout.png'
 import Agent_chat from '@/assets/image/agent_chat.png'
-
+import Avatar from '@/assets/image/avatar.png'
+import Car from '@/assets/image/car.png'
 // 工具
 import * as THREE from 'three'
 import type { AnimationMixer, AnimationAction, Group } from 'three'
 import { FBXLoader, OrbitControls } from 'three-stdlib'
 import { sendIntent, socketState } from '@/utils/AIOSService'
-import { isBase64 } from '@/utils'
+// import { uuid, isBase64 } from '@/utils'
 import BScroll from '@better-scroll/core'
+// import MarkdownIt from 'markdown-it'
 // 组件
 import MessageList from './model/messageList.vue'
 import Microphone from '@/assets/svg/microphone.svg'
 import Settings from '@/assets/svg/settings.svg'
-// import ComponentIcon from '@/assets/svg/component.svg'
+// import Refresh from '@/assets/svg/refresh.svg'
 import Plus from '@/assets/svg/plus.svg'
 // NodeType, CurState, 
 import type { Agent, Message, Hardware, Product } from './types'
-import { TaskType, IntentType, ProviderType } from './enum'
+import { TaskType, IntentType, ProviderType, MessageType } from './enum'
 // dom
 const canvasRef = ref<HTMLElement | null>(null)
 const recorderBgRef1 = ref<HTMLElement | null>(null)
 const recorderBgRef2 = ref<HTMLElement | null>(null)
 const audioPlayRef = ref<HTMLAudioElement | null>(null)
 const scrollRef = ref<HTMLElement | null>(null)
+const hardwareScrollRef = ref<HTMLElement | null>(null)
 const pressTimer = ref<number | null>(null)
 const isAnimating = ref<boolean>(false)
 
 const isMonitoring = ref<boolean>(true)
-// 语音识别结果
-const audioAnalyze = ref<string>('')
 // 是否播放
 const isAudioPlay = ref<boolean>(false)
 // 添加一个播放队列和当前播放状态
 const isPlaying = ref(false)
-const playQueue = reactive<Array<{ text: string }>>([])
 
+const playQueue = reactive<Array<{ text: string, viewText: string | Product[], msgType: MessageType }>>([])
 // 智能体消息列表
 const agentMessageList = reactive<Message[]>([
   {
     text: '欢迎来到智能体，我是你的智能助手',
     type: 'agent',
   },
-  {
+  /* {
     text: [
       {
-        logo: 'https://aios-storage-public.oss-cn-beijing.aliyuncs.com/images/kfc/spajtb.jpg',
+        logo: 'https://aios-storage-public.oss-cn-beijing.aliyuncs.com/images/kfc/spajtb1.jpg',
         productContent: '撒大苏打实打实大苏打实打实打算',
         productName: '阿萨大大',
         productPrice: 20
@@ -203,9 +204,8 @@ const agentMessageList = reactive<Message[]>([
       }
     ],
     type: 'agent',
-  }
+  } */
 ])
-
 // 硬件列表
 const hardwareList = reactive<Hardware[]>([
   {
@@ -214,8 +214,8 @@ const hardwareList = reactive<Hardware[]>([
     isActive: false,
   },
   {
-    name: 'TEMPERATURE',
-    icon: Thermometer_1,
+    name: 'CARSTATE',
+    icon: Car,
     isActive: false,
   },
   {
@@ -234,7 +234,29 @@ const hardwareList = reactive<Hardware[]>([
     isActive: false,
   }
 ])
-const messageImg = ref<string>('')
+
+const hardwareDataList = reactive<Hardware[]>([
+  {
+    name: '摄像头',
+    icon: Examination_0,
+  },
+  {
+    name: '运动手环',
+    icon: Fitness_band_0,
+  },
+  {
+    name: '测量体温',
+    icon: Temperature_0,
+  },
+  {
+    name: '打急救电话',
+    icon: Emergency_number_0,
+  },
+  {
+    name: '导航',
+    icon: Hospital_0,
+  }
+])
 // Intent相关
 const currentIntentType = ref<IntentType>(IntentType.ASR)
 const currentIntentId = ref<string>('')
@@ -247,191 +269,45 @@ onMounted(() => {
   orientationchange()
   // 初始化滚动
   initBScroll()
-
-  setTimeout(() => {
-    agentMessageList.push({
-      text: [
-        {
-          logo: 'https://aios-storage-public.oss-cn-beijing.aliyuncs.com/images/kfc/spajtb.jpg',
-          productContent: '撒大苏打实打实大苏打实打实打算',
-          productName: '阿萨大大',
-          productPrice: 20
-        },
-        {
-          logo: 'https://aios-storage-public.oss-cn-beijing.aliyuncs.com/images/kfc/spajtb.jpg',
-          productContent: '撒大苏打实打实大苏打实打实打算',
-          productName: '阿萨大大',
-          productPrice: 20
-        },
-        {
-          logo: 'https://aios-storage-public.oss-cn-beijing.aliyuncs.com/images/kfc/spajtb.jpg',
-          productContent: '撒大苏打实打实大苏打实打实打算',
-          productName: '阿萨大大',
-          productPrice: 20
-        },
-        {
-          logo: 'https://aios-storage-public.oss-cn-beijing.aliyuncs.com/images/kfc/spajtb.jpg',
-          productContent: '撒大苏打实打实大苏打实打实打算',
-          productName: '阿萨大大',
-          productPrice: 20
-        },
-        {
-          logo: 'https://aios-storage-public.oss-cn-beijing.aliyuncs.com/images/kfc/spajtb.jpg',
-          productContent: '撒大苏打实打实大苏打实打实打算',
-          productName: '阿萨大大',
-          productPrice: 20
-        }
-      ],
-      type: 'agent',
-    })
-  }, 3000);
-  // 定义模拟双指滑动的函数
-  /* function simulateTwoFingerSwipe(element: any, startPoint1: any, startPoint2: any, endPoint1, endPoint2, duration = 500) {
-    // 创建 Touch 对象所需的标识符
-    const touchId1 = 0;
-    const touchId2 = 1;
-
-    // 1. 创建 touchstart 事件的 Touch 对象
-    const touchStart1 = new Touch({
-      identifier: touchId1,
-      target: element,
-      clientX: startPoint1.x,
-      clientY: startPoint1.y,
-      radiusX: 5, // 接触点X轴半径
-      radiusY: 5, // 接触点Y轴半径
-      force: 1    // 压力值，通常为1
-    });
-
-    const touchStart2 = new Touch({
-      identifier: touchId2,
-      target: element,
-      clientX: startPoint2.x,
-      clientY: startPoint2.y,
-      radiusX: 5,
-      radiusY: 5,
-      force: 1
-    });
-
-    // 创建 touchstart 事件
-    const touchStartEvent = new TouchEvent('touchstart', {
-      touches: [touchStart1, touchStart2],
-      targetTouches: [touchStart1, touchStart2],
-      changedTouches: [touchStart1, touchStart2],
-      bubbles: true,
-      cancelable: true
-    });
-
-    // 分派 touchstart 事件
-    element.dispatchEvent(touchStartEvent);
-
-    // 2. 创建一系列 touchmove 事件来模拟滑动过程
-    const steps = 20; // 模拟的步骤数，影响平滑度
-    const stepDelay = duration / steps; // 每一步的延迟
-
-    for (let i = 0; i <= steps; i++) {
-      setTimeout(() => {
-        const progress = i / steps; // 当前进度 (0 到 1)
-
-        // 计算当前步骤两个触摸点的位置（线性插值）
-        const currentX1 = startPoint1.x + (endPoint1.x - startPoint1.x) * progress;
-        const currentY1 = startPoint1.y + (endPoint1.y - startPoint1.y) * progress;
-        const currentX2 = startPoint2.x + (endPoint2.x - startPoint2.x) * progress;
-        const currentY2 = startPoint2.y + (endPoint2.y - startPoint2.y) * progress;
-
-        // 创建当前步骤的 Touch 对象（用于 touchmove）
-        const touchMove1 = new Touch({
-          identifier: touchId1,
-          target: element,
-          clientX: currentX1,
-          clientY: currentY1,
-          radiusX: 5,
-          radiusY: 5,
-          force: 1
-        });
-
-        const touchMove2 = new Touch({
-          identifier: touchId2,
-          target: element,
-          clientX: currentX2,
-          clientY: currentY2,
-          radiusX: 5,
-          radiusY: 5,
-          force: 1
-        });
-
-        // 创建 touchmove 事件
-        const touchMoveEvent = new TouchEvent('touchmove', {
-          touches: [touchMove1, touchMove2],
-          targetTouches: [touchMove1, touchMove2],
-          changedTouches: [touchMove1, touchMove2],
-          bubbles: true,
-          cancelable: true
-        });
-
-        // 分派 touchmove 事件
-        element.dispatchEvent(touchMoveEvent);
-
-        // 如果是最后一步，分发 touchend 事件
-        if (i === steps) {
-          const touchEnd1 = new Touch({
-            identifier: touchId1,
-            target: element,
-            clientX: endPoint1.x,
-            clientY: endPoint1.y,
-            radiusX: 5,
-            radiusY: 5,
-            force: 0 // 力感为0表示手指已抬起
-          });
-
-          const touchEnd2 = new Touch({
-            identifier: touchId2,
-            target: element,
-            clientX: endPoint2.x,
-            clientY: endPoint2.y,
-            radiusX: 5,
-            radiusY: 5,
-            force: 0
-          });
-
-          const touchEndEvent = new TouchEvent('touchend', {
-            touches: [],
-            targetTouches: [],
-            changedTouches: [touchEnd1, touchEnd2], // 注意 touchend 事件中 touches 和 targetTouches 应为空
-            bubbles: true,
-            cancelable: true
-          });
-
-          element.dispatchEvent(touchEndEvent);
-        }
-      }, stepDelay * i);
-    }
-  } */
-
+  // 发送一个greetings
+  sendIntent(IntentType.GREETINGS, { greetings: '' })
 })
 watchEffect(async () => {
   try {
     if (!socketState.message) return
     console.log(JSON.parse(socketState.message))
-    const { type, msg, id, appName } = JSON.parse(socketState.message)
+    const { type, msg, id, appName, nodeTitle } = JSON.parse(socketState.message)
+    // 如果消息为空，不执行后面代码
+    if (msg === '') return
     // 当接收到不同类型时的处理
     switch (type) {
       case TaskType.TTS:
-        // 正则表达式规则，以菜单:`开头，以`结尾
+        // 正则表达式规则，以菜单:`开头，以`结尾, 播放的消息文本
         let arsMessage = ''
-        const regex = /菜单:`([^`]+)`/
-        const matchMsg = msg.match(regex)?.[1]
-        if (matchMsg) {
-          const { data } = JSON.parse(matchMsg)
-          arsMessage = data.shop.productList.map((product: Product) => {
-            const { productName, productPrice } = product
-            return `${productName},${productPrice}元`
-          }).join('\n')
-          handleDialogueList(data.shop.productList)
-        } else {
-          arsMessage = msg
-          handleDialogueList(arsMessage)
+        // 显示的消息文本
+        let arsViewMessage = ''
+
+        const { type, message } = handleTTSMessage(msg)
+        switch (type) {
+          case MessageType.JSON:
+            const { data } = JSON.parse(message)
+            arsMessage = data.shop.productList.map((product: Product) => {
+              const { productName, productPrice } = product
+              return `${productName},${productPrice}元`
+            }).join('\n')
+            arsViewMessage = data.shop.productList
+            break;
+          case MessageType.MARKDOWN:
+            const regex = /notify```\s*([\s\S]*?)```/
+            arsMessage = msg.match(regex)?.[1]
+            arsViewMessage = message
+            break;
+          case MessageType.TEXT:
+            arsMessage = message
+            arsViewMessage = message
+            break;
         }
-        handlePlayQueue(arsMessage)
+        handlePlayQueue(arsMessage, arsViewMessage, type)
         break;
       case TaskType.PROVIDER:
         hardwareList.forEach(item => {
@@ -439,22 +315,17 @@ watchEffect(async () => {
             item.isActive = true
             setTimeout(() => {
               item.isActive = false
-            }, 5000);
+            }, 5500);
           }
         })
         break;
       case TaskType.USER:
         currentIntentType.value = IntentType.USERANSWER
         currentIntentId.value = id
-        handlePlayQueue(msg).then(() => {
-          console.log('开启自动继续说话');
+        handlePlayQueue(msg, msg).then(() => {
           handleRecorderTouchstart()
-          return
-          detectVolume()
           startVolumeDetection()
-          stopVolumeDetection
         })
-        handleDialogueList(msg)
         break
     }
     // 选择智能体
@@ -462,24 +333,74 @@ watchEffect(async () => {
       handleAgent(appName)
     }
     // 图片处理
-    if (isBase64(msg)) {
-      messageImg.value = `data:image/jpeg;base64,${msg}`
-      agentMessageList.push({ text: messageImg.value, type: 'agent', img: true })
-      console.log('图片--------------------', messageImg.value)
+    if (nodeTitle === ProviderType.CAMERA && msg.includes(MessageType.IMAGE)) {
+      // const messageImg = `data:image/jpeg;base64,${msg}`
+      // const messageImg = `http://127.0.0.1:8090/uploaded_image.jpg?t=${uuid()}`
+      handlePlayQueue('', msg, MessageType.IMAGE)
+
+      console.log('图片--------------------', msg)
     }
   } catch (error) {
     console.error('不是一个有效的JSON数据', error)
+    // 保存为tet下载
+    /* const blob = new Blob([socketState.message], { type: 'application/octet-stream' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'message.txt'
+    a.click() */
     const p = socketState.message.split(',')
     console.log(p)
   }
 })
 // 监听消息列表变化
 watch(agentMessageList, () => {
-  nextTick(() => {
-    bs.value?.refresh()
-    bs.value?.scrollTo(0, bs.value?.maxScrollY, 300)
-  })
+  updateScroll()
 })
+
+/**
+ * 处理TTS消息
+ * @param message 待处理的消息
+ * @returns 处理后的消息
+ */
+const handleTTSMessage = (message: string): { message: string; type: MessageType } => {
+  const regexs = [
+    {
+      type: MessageType.HTML,
+      regex: /html```\s*([\s\S]*?)```/
+    },
+    {
+      type: MessageType.MARKDOWN,
+      regex: /markdown```\s*([\s\S]*?)```/
+    },
+    {
+      type: MessageType.JSON,
+      regex: /菜单:`([^`]+)`/
+    }
+  ]
+  console.log('开始校验', message);
+  for (const item of regexs) {
+    if (message.match(item.regex)?.[1]) {
+      return {
+        type: item.type,
+        message: message.match(item.regex)?.[1] || ''
+      }
+    }
+  }
+  return {
+    type: MessageType.TEXT,
+    message
+  }
+}
+/**
+ * 提取markdown标题
+ * @param text 待处理的文本
+ * @returns 提取的标题
+ */
+// 监听图片加载完成
+const handleImageLoad = () => {
+  updateScroll()
+}
 // 智能体
 const agentList: Agent[] = [
   {
@@ -532,31 +453,22 @@ const handleAgent = (text: string) => {
   const agentFind = agentList.find((v) => v.name === text)
   if (agentFind) {
     currentAgent.value = agentFind
-    for (const agent of agentList) {
-      agent.isActive = false
-    }
-    currentAgent.value.isActive = true
     return
     init3DModel()
+  } else {
+    currentAgent.value = agentList[0]
   }
+  for (const agent of agentList) agent.isActive = false
+  currentAgent.value.isActive = true
 }
 // 屏幕方向
 const screenOrientation = ref<number>(screen.orientation.angle)
+// 屏幕方向改变
+watch(screenOrientation, () => resetScroll())
 // 持续监听屏幕方向
 const orientationchange = () => {
   window.addEventListener('orientationchange', function () {
     screenOrientation.value = screen.orientation.angle
-    nextTick(() => {
-      // 先销毁现有的BScroll实例
-      if (bs.value) {
-        bs.value.destroy()
-        bs.value = null
-      }
-      // 延迟一段时间后重新初始化
-      setTimeout(() => {
-        initBScroll()
-      }, 200)
-    })
   });
   window.addEventListener('resize', function () {
     // 当宽度小于高度时，将屏幕方向设置为竖屏
@@ -569,12 +481,44 @@ const orientationchange = () => {
 }
 // 初始化滚动
 const initBScroll = () => {
-  if (scrollRef.value) {
-    bs.value = new BScroll(scrollRef.value, {
-      probeType: 3,
-      click: true
-    })
-  }
+  nextTick(() => {
+    if (scrollRef.value) {
+      bs.value = new BScroll(scrollRef.value, {
+        probeType: 3,
+        click: true
+      })
+    }
+    if (hardwareScrollRef.value) {
+      new BScroll(hardwareScrollRef.value, {
+        probeType: 3,
+        scrollX: true
+      })
+    }
+  })
+}
+// 重置滚动
+const resetScroll = () => {
+  nextTick(() => {
+    console.log('屏幕方向改变, 刷新BS');
+    // 先销毁现有的BScroll实例
+    if (bs.value) {
+      bs.value.destroy()
+      bs.value = null
+    }
+    // 延迟一段时间后重新初始化
+    setTimeout(() => {
+      initBScroll()
+    }, 200)
+  })
+}
+// 更新滚动
+const updateScroll = () => {
+  nextTick(() => {
+    if (bs.value) {
+      bs.value.refresh()
+      bs.value.scrollTo(0, bs.value.maxScrollY, 300)
+    }
+  })
 }
 // 初始化3D模型
 const init3DModel = () => {
@@ -697,10 +641,14 @@ const mediaRecorder = ref<MediaRecorder | null>(null)
 const audioContext = ref<AudioContext | null>(null)
 // 音频节点
 const analyserNode = ref<AnalyserNode | null>(null)
-// 处理播放队列
-const handlePlayQueue = (msg: string): Promise<void> => {
+/**
+ * 处理播放队列
+ * @param msg 播放的文本
+ * @param viewMsg 显示的文本
+ */
+const handlePlayQueue = (msg: string, viewMsg: string | Product[], msgType: MessageType = 'text'): Promise<void> => {
   // 将播放请求加入队列
-  playQueue.push({ text: msg })
+  playQueue.push({ text: msg, viewText: viewMsg, msgType })
   return new Promise((resolve) => {
     // 如果当前没有在播放，则开始处理队列
     if (!isPlaying.value) {
@@ -709,7 +657,21 @@ const handlePlayQueue = (msg: string): Promise<void> => {
         while (playQueue.length > 0) {
           const item = playQueue.shift()
           if (item) {
-            await ttsApi(item.text)
+            // 处理图片消息
+            if (item.msgType === MessageType.IMAGE) {
+              handleDialogueList(item.viewText, item.msgType)
+              // 给摄像头硬件部分添加图片
+              hardwareDataList[0].data = {
+                type: 'img',
+                value: msg,
+              }
+            }
+            // 处理文本消息
+            else {
+              const res = await ttsApi(item.text)
+              handleDialogueList(item.viewText, item.msgType)
+              await handleAudioPlay(res.file)
+            }
           }
         }
         isPlaying.value = false
@@ -727,17 +689,47 @@ const handlePlayQueue = (msg: string): Promise<void> => {
     }
   })
 }
+// 处理音频播放
+const handleAudioPlay = (filePath: string): Promise<void> => {
+  return new Promise((resolve) => {
+    if (audioPlayRef.value) {
+      audioPlayRef.value.src = location.href + filePath
+      // 监听播放完成事件
+      const onEnded = () => {
+        audioPlayRef.value?.removeEventListener('ended', onEnded)
+        resolve()
+      }
+      // 监听播放暂停
+      const onPause = () => {
+        audioPlayRef.value?.removeEventListener('pause', onPause)
+        resolve()
+      }
+      audioPlayRef.value.addEventListener('ended', onEnded)
+      audioPlayRef.value.addEventListener('pause', onPause)
+      audioPlayRef.value.play().catch((e) => {
+        console.error('播放失败:', e)
+        resolve()
+      })
+    }
+  })
+
+}
 // 处理对话列表
-const handleDialogueList = (message: string | Product[]) => {
+const handleDialogueList = (message: string | Product[], messageType: string) => {
   if (agentMessageList[agentMessageList.length - 1].loading) {
     agentMessageList[agentMessageList.length - 1] = {
       text: message,
       type: 'agent',
+      messageType
     }
   } else {
-    agentMessageList.push({ text: message, type: 'agent' })
+    agentMessageList.push({ text: message, type: 'agent', messageType })
   }
 }
+// 给硬件设备添加图片
+
+// 是否有录音权限
+const hasRecorderPermission = ref(true)
 // 长按录音按钮
 const handleRecorderTouchstart = () => {
   // 如果当前是在播放的状态，则暂停播放
@@ -748,19 +740,40 @@ const handleRecorderTouchstart = () => {
     console.log('录音开始')
     isAnimating.value = true
     isMonitoring.value = true
-    // 恢复音频上下文
-    audioContext.value?.resume().then(() => {
-      mediaRecorder.value?.start()
-    })
+    if (hasRecorderPermission.value) {
+      // 恢复音频上下文
+      audioContext.value?.resume().then(() => {
+        mediaRecorder.value?.start()
+      })
+    } else {
+      fetch('http://127.0.0.1:8081/start_record', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+    }
   }, 100)
 }
 // 移开录音按钮
 const handleRecorderTouchend = () => {
   if (pressTimer.value) {
-    clearTimeout(pressTimer.value)
     isAnimating.value = false
     isMonitoring.value = false
-    mediaRecorder.value?.stop()
+    clearTimeout(pressTimer.value)
+    if (hasRecorderPermission.value) {
+      mediaRecorder.value?.stop()
+      stopVolumeDetection()
+    } else {
+      fetch('http://127.0.0.1:8081/stop_record', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }).then(res => res.blob()).then(blob => {
+        handleRecorderData(blob)
+      })
+    }
     console.log('录音结束')
   }
 }
@@ -795,32 +808,36 @@ const handleRecorder = async () => {
     mediaRecorder.value.onstop = async () => {
       const blob = new Blob(chunks, { type: mediaRecorder.value?.mimeType })
       // 调用语音识别接口
-      const result: string = await arsApi(blob)
-      // 语音识别结果
-      audioAnalyze.value = result
-      agentMessageList.push(
-        {
-          text: result, type: 'user'
-        },
-        {
-          text: '', type: 'agent', loading: true
-        },
-      )
+      await handleRecorderData(blob)
       chunks = []
-      if (currentIntentType.value === IntentType.ASR) {
-        sendIntent(IntentType.ASR, { asrText: result })
-      } else if (currentIntentType.value === IntentType.USERANSWER) {
-        sendIntent(IntentType.USERANSWER, { userAnswer: result, id: currentIntentId.value })
-        // 恢复为ASR
-        currentIntentType.value = IntentType.ASR
-      }
     }
     // 监听数据可用
     mediaRecorder.value.ondataavailable = (e) => {
       chunks.push(e.data)
     }
   } catch (err) {
+    hasRecorderPermission.value = false
     console.error('获取麦克风失败', err)
+  }
+}
+// 处理录音返回数据
+const handleRecorderData = async (blob: Blob) => {
+  // 调用语音识别接口
+  const result: string = await arsApi(blob)
+  agentMessageList.push(
+    {
+      text: result, type: 'user'
+    },
+    {
+      text: '', type: 'agent', loading: true
+    },
+  )
+  if (currentIntentType.value === IntentType.ASR) {
+    sendIntent(IntentType.ASR, { asrText: result })
+  } else if (currentIntentType.value === IntentType.USERANSWER) {
+    sendIntent(IntentType.USERANSWER, { userAnswer: result, id: currentIntentId.value })
+    // 恢复为ASR
+    currentIntentType.value = IntentType.ASR
   }
 }
 // 在组件的响应式数据中定义
@@ -855,23 +872,22 @@ const detectVolume = () => {
     sum += dataArray[i];
   }
   const averageVolume = sum / dataArray.length;
-  console.log(averageVolume);
 
   // 音量大于30则认为说过第一句话
   if (averageVolume >= volume && !volumeDetectionState.isFirstSentence) {
     volumeDetectionState.isFirstSentence = true;
-    console.log("开始说话，第一个字");
+    console.log("开始说话，第一个字", averageVolume);
   }
 
   if (averageVolume >= volume && volumeDetectionState.isFirstSentence && volumeDetectionState.timerId) {
     clearTimeout(volumeDetectionState.timerId);
     volumeDetectionState.timerId = null;
-    console.log("继续说话");
+    console.log("继续说话", averageVolume);
   }
 
   // 音量小于30并且说过第一句话则认为说完了，等待一段时间后关闭监听
   if (averageVolume < volume && volumeDetectionState.isFirstSentence) {
-    console.log("没有声音了，等待3秒后取消声音监听");
+    console.log("没有声音了，等待3秒后取消声音监听", averageVolume);
     if (!volumeDetectionState.timerId) {
       volumeDetectionState.timerId = setTimeout(() => {
         volumeDetectionState.isMonitoring = false;
@@ -880,7 +896,7 @@ const detectVolume = () => {
           volumeDetectionState.volumeDetectionRequestId = null;
         }
         console.log("取消声音监听，调用停止录音函数");
-        handleRecorderTouchstart();
+        handleRecorderTouchend();
       }, timeout);
     }
   }
@@ -912,49 +928,6 @@ const stopVolumeDetection = () => {
     volumeDetectionState.volumeDetectionRequestId = null;
   }
 };
-/* const detectVolume = () => {
-  if (!analyserNode.value) return;
-  // 定义一个变量，用于保存持续检测的请求ID
-  let volumeDetectionRequestId: number | null = null
-  // 关闭音量监听的定时器ID
-  let timerId: number | null = null
-  // 是否说了第一句话
-  let isFirstSentence: boolean = false;
-  // 说话音量的阈值
-  const volume = 30
-  // 多少秒没有声音后停止监听
-  const timeout = 3000
-  const dataArray = new Uint8Array(analyserNode.value.frequencyBinCount);
-  analyserNode.value.getByteFrequencyData(dataArray);
-
-  // 计算平均音量
-  let sum = 0;
-  for (let i = 0; i < dataArray.length; i++) {
-    sum += dataArray[i];
-  }
-  const averageVolume = sum / dataArray.length;
-  console.log(averageVolume);
-  // 音量大于30则认为说过第一句话
-  if (averageVolume >= volume && !isFirstSentence) {
-    isFirstSentence = true;
-    console.log("开始说话，第一个字");
-  }
-  if (averageVolume >= volume && isFirstSentence && timerId) {
-    clearTimeout(timerId)
-    console.log("继续说话");
-  }
-  // 音量小于30并且说过第一句话则认为说完了，等待一段时间后关闭监听
-  if (averageVolume < volume && isFirstSentence) {
-    console.log("没有声音了，等待3秒后取消声音监听");
-    timerId = setTimeout(() => {
-      cancelAnimationFrame(volumeDetectionRequestId as number)
-      console.log("取消声音监听，调用停止录音函数");
-      handleRecorderTouchstart()
-    }, timeout);
-  }
-  // 持续检测
-  volumeDetectionRequestId = requestAnimationFrame(detectVolume);
-}; */
 // 语音转文字
 const arsApi = async (blob: Blob): Promise<string> => {
   const X_NLS_TOKEN = '23f3c7ff8cd646d198d24ea6ec41b0f0'
@@ -971,7 +944,7 @@ const arsApi = async (blob: Blob): Promise<string> => {
     })
       .then((res) => res.json())
       .then(({ result }) => {
-        resolve(result as string)
+        resolve(result)
       })
       .catch((err) => {
         console.log('asr调用出错', err);
@@ -979,10 +952,14 @@ const arsApi = async (blob: Blob): Promise<string> => {
       })
   })
 }
-//语音转文字
+//文字转语音
 const ttsApi = (
   text: string = '今天星期一，天气很好'
-): Promise<void> => {
+): Promise<{
+  file: string
+  msg: string
+  code: 0
+}> => {
   return new Promise((resolve) => {
     fetch(`/tts?text=${text}`, {
       method: 'GET',
@@ -991,8 +968,12 @@ const ttsApi = (
       },
     })
       .then((res) => res.json())
-      .then((res) => {
-        if (audioPlayRef.value) {
+      .then((res: {
+        file: string
+        msg: string
+        code: 0
+      }) => {
+        /* if (audioPlayRef.value) {
           audioPlayRef.value.src = location.href + res.file
           // 监听播放完成事件
           const onEnded = () => {
@@ -1014,20 +995,28 @@ const ttsApi = (
           })
         } else {
           resolve()
-        }
+        } */
+        resolve(res)
       })
       .catch((error) => {
         console.error('获取音频失败:', error)
-        resolve()
+        resolve(error)
       })
   })
 }
 </script>
 <style lang="scss" scoped>
-@media (height >=668px) {
-  /* .bot-img {
-    width: 160px;
-  } */
+.container {
+  /* IE 10+ */
+  -ms-overflow-style: none;
+
+  /* Firefox */
+  scrollbar-width: none;
+}
+
+.container::-webkit-scrollbar {
+  /* Webkit browsers */
+  display: none;
 }
 
 .recorder-bg-1 {

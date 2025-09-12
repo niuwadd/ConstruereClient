@@ -26,11 +26,22 @@ export const ProviderType = {
   TEMPERATURE: 'take_body_temperature',
   HEART_ARTE: 'take_body_heart_rate',
   NAVIGATING: 'use_baidu_navigating',
+  CARSTATE: 'get_car_one_state',
 } as const
 export type ProviderType = (typeof ProviderType)[keyof typeof ProviderType]
 
 export const IntentType = {
   ASR: 'asr',
   USERANSWER: 'userAnswer',
+  GREETINGS: 'greetings',
 } as const
 export type IntentType = (typeof IntentType)[keyof typeof IntentType]
+
+export const MessageType = {
+  TEXT: 'text',
+  IMAGE: 'image',
+  MARKDOWN: 'markDown',
+  HTML: 'html',
+  JSON: 'json',
+} as const
+export type MessageType = (typeof MessageType)[keyof typeof MessageType]

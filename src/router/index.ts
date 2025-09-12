@@ -15,6 +15,12 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/chat/index.vue'),
     meta: { transition: 'chat' },
   },
+  {
+    path: '/home-specialty',
+    name: 'home-specialty',
+    component: () => import('@/views/home/home-specialty/index.vue'),
+    meta: { transition: 'home-specialty' },
+  }
 ]
 
 const router = createRouter({

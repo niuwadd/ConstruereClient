@@ -8,7 +8,6 @@
       <div
         class="w-[50px] overflow-hidden border-2 rounded-full border-gray-300"
       >
-        <img :src="Agent1" alt="" />
       </div>
       <div><MoreIcon class="size-6" /></div>
     </div>
@@ -36,7 +35,6 @@
 <script setup lang="ts">
 import { watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
-import Agent1 from '@/assets/image/agent1.webp'
 import LeftIcon from '@/assets/svg/left.svg'
 import MoreIcon from '@/assets/svg/more.svg'
 import SendFillIcon from '@/assets/svg/send-fill.svg'

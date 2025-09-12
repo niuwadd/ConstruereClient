@@ -13,6 +13,10 @@
     "@headlessui/vue": "^1.7.23",
     "@tailwindcss/vite": "^4.1.11",
     "animejs": "^4.0.2",
+    "markdown-it": "^14.1.0",
+    "mavon-editor": "^3.0.2",
+    "md-editor-v3": "^5.8.4",
+    "recordrtc": "^5.6.2",
     "sass": "^1.89.2",
     "tailwindcss": "^4.1.11",
     "three": "^0.178.0",
@@ -21,6 +25,7 @@
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
+    "@types/recordrtc": "^5.6.14",
     "@types/three": "^0.178.1",
     "@vitejs/plugin-legacy": "^7.1.0",
     "@vitejs/plugin-vue": "^6.0.0",

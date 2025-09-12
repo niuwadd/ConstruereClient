@@ -14,6 +14,7 @@ export default defineConfig({
     },
   },
   server: {
+    host: '0.0.0.0',
     proxy: {
       '/stream/v1': {
         target: 'https://nls-gateway-cn-shanghai.aliyuncs.com',
@@ -22,7 +23,7 @@ export default defineConfig({
       '/thrift': {
         target: 'http://10.31.13.177:52002',
         changeOrigin: true,
-      }
+      },
     },
   },
   assetsInclude: ['**/*.fbx'],

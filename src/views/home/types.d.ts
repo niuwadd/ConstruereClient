@@ -21,11 +21,17 @@ export interface Product {
 export interface Message {
   text: string | Array<Product>
   type: 'user' | 'agent'
+  messageType?: string
   img?: boolean
   loading?: boolean
+}
+interface HardwareData {
+  type: string
+  value: string
 }
 export interface Hardware {
   name: string
   icon: string
-  isActive: boolean
+  isActive?: boolean
+  data?: HardwareData
 }

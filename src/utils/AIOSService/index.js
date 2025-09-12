@@ -1,6 +1,7 @@
 import Thrift from './thrift';
 import aios from './aios_service_types';
 import { reactive } from 'vue'
+import { log } from 'three/tsl';
 let ws = null;
 let thriftClient = null;
 let clientId = '123213213';
