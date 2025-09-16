@@ -71,10 +71,10 @@
       class="flex flex-col flex-1 min-w-[50%] rounded-l-4xl bg-white/25 p-8 text-2xl font-bold relative">
       <div class="absolute top-0 z-[2] flex justify-center items-center gap-4 w-full py-4 backdrop-blur-[2px]">
         <h2 @click="updateScroll" class="text-center text-lg">当前对话</h2>
-        <!-- <Refresh class="size-5" /> -->
       </div>
       <div ref="scrollRef" class="min-h-[200px] flex-1 overflow-hidden">
-        <MessageList class="pt-8 pb-24" :agentMessageList="agentMessageList" @imageLoad="handleImageLoad" />
+        <MessageList id="agentMessageList" class="pt-8 pb-24" :agentMessageList="agentMessageList"
+          @imageLoad="handleImageLoad" />
       </div>
       <div class="absolute bottom-0 z-[2] w-full py-4 backdrop-blur-[2px] flex justify-center">
         <div class="relative">
@@ -135,18 +135,17 @@ import * as THREE from 'three'
 import type { AnimationMixer, AnimationAction, Group } from 'three'
 import { FBXLoader, OrbitControls } from 'three-stdlib'
 import { sendIntent, socketState } from '@/utils/AIOSService'
-// import { uuid, isBase64 } from '@/utils'
+import { getTimeGreeting } from '@/utils'
 import BScroll from '@better-scroll/core'
 // import MarkdownIt from 'markdown-it'
 // 组件
 import MessageList from './model/messageList.vue'
 import Microphone from '@/assets/svg/microphone.svg'
 import Settings from '@/assets/svg/settings.svg'
-// import Refresh from '@/assets/svg/refresh.svg'
 import Plus from '@/assets/svg/plus.svg'
 // NodeType, CurState, 
-import type { Agent, Message, Hardware, Product } from './types'
-import { TaskType, IntentType, ProviderType, MessageType } from './enum'
+import type { Agent, Message, Hardware, Product, Shop, MessageText } from './types'
+import { TaskType, IntentType, ProviderType, MessageType, AppName } from './enum'
 // dom
 const canvasRef = ref<HTMLElement | null>(null)
 const recorderBgRef1 = ref<HTMLElement | null>(null)
@@ -163,48 +162,13 @@ const isAudioPlay = ref<boolean>(false)
 // 添加一个播放队列和当前播放状态
 const isPlaying = ref(false)
 
-const playQueue = reactive<Array<{ text: string, viewText: string | Product[], msgType: MessageType }>>([])
+const playQueue = reactive<Array<{ text: string, viewText: MessageText, msgType: MessageType }>>([])
 // 智能体消息列表
 const agentMessageList = reactive<Message[]>([
   {
     text: '欢迎来到智能体，我是你的智能助手',
     type: 'agent',
   },
-  /* {
-    text: [
-      {
-        logo: 'https://aios-storage-public.oss-cn-beijing.aliyuncs.com/images/kfc/spajtb1.jpg',
-        productContent: '撒大苏打实打实大苏打实打实打算',
-        productName: '阿萨大大',
-        productPrice: 20
-      },
-      {
-        logo: 'https://aios-storage-public.oss-cn-beijing.aliyuncs.com/images/kfc/spajtb.jpg',
-        productContent: '撒大苏打实打实大苏打实打实打算',
-        productName: '阿萨大大',
-        productPrice: 20
-      },
-      {
-        logo: 'https://aios-storage-public.oss-cn-beijing.aliyuncs.com/images/kfc/spajtb.jpg',
-        productContent: '撒大苏打实打实大苏打实打实打算',
-        productName: '阿萨大大',
-        productPrice: 20
-      },
-      {
-        logo: 'https://aios-storage-public.oss-cn-beijing.aliyuncs.com/images/kfc/spajtb.jpg',
-        productContent: '撒大苏打实打实大苏打实打实打算',
-        productName: '阿萨大大',
-        productPrice: 20
-      },
-      {
-        logo: 'https://aios-storage-public.oss-cn-beijing.aliyuncs.com/images/kfc/spajtb.jpg',
-        productContent: '撒大苏打实打实大苏打实打实打算',
-        productName: '阿萨大大',
-        productPrice: 20
-      }
-    ],
-    type: 'agent',
-  } */
 ])
 // 硬件列表
 const hardwareList = reactive<Hardware[]>([
@@ -271,7 +235,69 @@ onMounted(() => {
   initBScroll()
   // 发送一个greetings
   sendIntent(IntentType.GREETINGS, { greetings: '' })
+  setTimeout(() => {
+    // handleAgentMessageListChange()
+  }, 1000)
+
+
+  /* const resize = new ResizeObserver((entries) => {
+    if (scrollRef.value && entries[0].contentRect.height > scrollRef.value.clientHeight) {
+      updateScroll()
+    }
+  })
+  if (scrollRef.value) {
+    console.log(document.querySelector('#agentMessageList'));
+    console.log(scrollRef.value?.childNodes);
+    resize.observe(document.querySelector('#agentMessageList') as Element)
+  } */
 })
+
+// 模拟agentMessageList变化
+function handleAgentMessageListChange() {
+  agentMessageList.push(
+    {
+      text: '测试测试',
+      type: 'agent',
+      messageType: MessageType.TEXT,
+    },
+    {
+      text: '测试测试',
+      type: 'agent',
+      messageType: MessageType.TEXT,
+    },
+    {
+      text: '测试测试',
+      type: 'agent',
+      messageType: MessageType.TEXT,
+    },
+    {
+      text: 'https://picsum.photos/200/300',
+      type: 'agent',
+      messageType: MessageType.IMAGE,
+    },
+    {
+      text: 'https://picsum.photos/300/200',
+      type: 'agent',
+      messageType: MessageType.IMAGE,
+    },
+    {
+      text: 'dasdsadsad',
+      type: 'user',
+      messageType: MessageType.TEXT,
+    }
+    /* {
+      text: {
+        logo: 'https://picsum.photos/200/300',
+        productContent: '这是商品内容',
+        productName: '商品名称',
+        productPrice: 100,
+        productId: '1',
+      },
+      type: 'agent',
+      messageType: MessageType.JSON_MENU,
+    }, */
+  )
+}
 watchEffect(async () => {
   try {
     if (!socketState.message) return
@@ -286,16 +312,35 @@ watchEffect(async () => {
         let arsMessage = ''
         // 显示的消息文本
         let arsViewMessage = ''
-
         const { type, message } = handleTTSMessage(msg)
         switch (type) {
-          case MessageType.JSON:
-            const { data } = JSON.parse(message)
-            arsMessage = data.shop.productList.map((product: Product) => {
+          case MessageType.JSON_MENU:
+            const { data: productData } = JSON.parse(message)
+            arsMessage = productData.shop.productList.map((product: Product) => {
               const { productName, productPrice } = product
               return `${productName},${productPrice}元`
-            }).join('\n')
-            arsViewMessage = data.shop.productList
+            }).join('。')
+            arsViewMessage = productData.shop.productList
+            break;
+          case MessageType.JSON_RESTAURANT:
+            const { data: shopData } = JSON.parse(message)
+            arsMessage = shopData.shop_list.map((shop: Shop) => {
+              const { shopName, shopDescription } = shop
+              return `${shopName},${shopDescription}`
+            }).join('。')
+            arsViewMessage = shopData.shop_list
+            break;
+          case MessageType.USER:
+            const { userId } = JSON.parse(message)
+            arsMessage = `${getTimeGreeting()},${userId}`
+            arsViewMessage = `${getTimeGreeting()},${userId}`
+            console.log(arsMessage);
+            break;
+          case MessageType.WEATHER:
+            const { result: weatherData } = JSON.parse(message)
+            arsMessage = `今天是${weatherData.date}，${weatherData.week}，${weatherData.city}天气${weatherData.weather}`
+            arsViewMessage = `今天是${weatherData.date}，${weatherData.week}，${weatherData.city}天气${weatherData.weather}`
+            console.log(arsMessage);
             break;
           case MessageType.MARKDOWN:
             const regex = /notify```\s*([\s\S]*?)```/
@@ -357,7 +402,6 @@ watchEffect(async () => {
 watch(agentMessageList, () => {
   updateScroll()
 })
-
 /**
  * 处理TTS消息
  * @param message 待处理的消息
@@ -373,14 +417,31 @@ const handleTTSMessage = (message: string): { message: string; type: MessageType
       type: MessageType.MARKDOWN,
       regex: /markdown```\s*([\s\S]*?)```/
     },
-    {
+    /* {
       type: MessageType.JSON,
-      regex: /菜单:`([^`]+)`/
-    }
+      regex: /[\u4e00-\u9fff]+```([^`]+)```/
+    }, */
+    {
+      type: MessageType.JSON_RESTAURANT,
+      regex: /饭店```([^`]+)```/
+    },
+    {
+      type: MessageType.JSON_MENU,
+      regex: /菜单```([^`]+)```/
+    },
+    {
+      type: MessageType.USER,
+      regex: /user```([^`]+)```/
+    },
+    {
+      type: MessageType.WEATHER,
+      regex: /weather```([^`]+)```/
+    },
   ]
   console.log('开始校验', message);
   for (const item of regexs) {
     if (message.match(item.regex)?.[1]) {
+      console.log('匹配成功', item.type);
       return {
         type: item.type,
         message: message.match(item.regex)?.[1] || ''
@@ -412,7 +473,7 @@ const agentList: Agent[] = [
     isActive: true,
   },
   {
-    name: '发朋友圈',
+    name: AppName.CHAT,
     title: '社交助手智能体',
     title_1: '我是您的社交助手',
     description: '我可以为你做',
@@ -421,7 +482,7 @@ const agentList: Agent[] = [
     isActive: false,
   },
   {
-    name: '医疗助理',
+    name: AppName.MEDICAL,
     title: '医疗助理智能体',
     title_1: '我是您的医疗助理',
     description: '我可以为你做',
@@ -429,7 +490,7 @@ const agentList: Agent[] = [
     isActive: false,
   },
   {
-    name: '点餐助手',
+    name: AppName.TAKEOUT,
     title: '点餐助手智能体',
     title_1: '我是您的点餐助手',
     // description: '通过语音交流进行点餐，通过AI分析点餐记录，并给出点餐建议',
@@ -438,7 +499,7 @@ const agentList: Agent[] = [
     isActive: false,
   },
   {
-    name: '车辆健康管家',
+    name: AppName.REPAIR,
     title: '车辆健康智能体',
     title_1: '我是您的车辆健康管家',
     description: '我可以为你做',
@@ -646,7 +707,7 @@ const analyserNode = ref<AnalyserNode | null>(null)
  * @param msg 播放的文本
  * @param viewMsg 显示的文本
  */
-const handlePlayQueue = (msg: string, viewMsg: string | Product[], msgType: MessageType = 'text'): Promise<void> => {
+const handlePlayQueue = (msg: string, viewMsg: MessageText, msgType: MessageType = 'text'): Promise<void> => {
   // 将播放请求加入队列
   playQueue.push({ text: msg, viewText: viewMsg, msgType })
   return new Promise((resolve) => {
@@ -663,7 +724,7 @@ const handlePlayQueue = (msg: string, viewMsg: string | Product[], msgType: Mess
               // 给摄像头硬件部分添加图片
               hardwareDataList[0].data = {
                 type: 'img',
-                value: msg,
+                value: item.viewText as string,
               }
             }
             // 处理文本消息
@@ -715,7 +776,7 @@ const handleAudioPlay = (filePath: string): Promise<void> => {
 
 }
 // 处理对话列表
-const handleDialogueList = (message: string | Product[], messageType: string) => {
+const handleDialogueList = (message: MessageText, messageType: string) => {
   if (agentMessageList[agentMessageList.length - 1].loading) {
     agentMessageList[agentMessageList.length - 1] = {
       text: message,

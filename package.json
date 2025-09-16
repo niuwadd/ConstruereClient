@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev-prod": "vite --mode production",
     "build": "vue-tsc -b && vite build",
+    "build-prod": "vue-tsc && vite build --mode production",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -13,14 +15,11 @@
     "@headlessui/vue": "^1.7.23",
     "@tailwindcss/vite": "^4.1.11",
     "animejs": "^4.0.2",
-    "markdown-it": "^14.1.0",
-    "mavon-editor": "^3.0.2",
     "md-editor-v3": "^5.8.4",
     "recordrtc": "^5.6.2",
     "sass": "^1.89.2",
     "tailwindcss": "^4.1.11",
     "three": "^0.178.0",
-    "vconsole": "^3.15.1",
     "vue": "^3.5.17",
     "vue-router": "^4.5.1"
   },

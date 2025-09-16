@@ -18,11 +18,19 @@ export interface Product {
   productPrice: number
   productId?: string
 }
+export interface Shop {
+  logo: string
+  shopName: string
+  shopDescription: string
+  shopId?: string
+}
+type UnionArray<T, U> = Array<T | U>
+export type MessageText = string | UnionArray<Product, Shop>
 export interface Message {
-  text: string | Array<Product>
+  // text: string | any[]
+  text: string | UnionArray<Product, Shop>
   type: 'user' | 'agent'
   messageType?: string
-  img?: boolean
   loading?: boolean
 }
 interface HardwareData {

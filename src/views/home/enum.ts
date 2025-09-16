@@ -43,5 +43,17 @@ export const MessageType = {
   MARKDOWN: 'markDown',
   HTML: 'html',
   JSON: 'json',
+  JSON_MENU: 'jsonMenu',
+  JSON_RESTAURANT: 'jsonRestaurant',
+  USER: 'user',
+  WEATHER: 'weather',
 } as const
 export type MessageType = (typeof MessageType)[keyof typeof MessageType]
+
+export const AppName = {
+  TAKEOUT: '外卖助手',
+  MEDICAL: '医疗助理',
+  REPAIR: '车辆健康管家',
+  CHAT: '发朋友圈'
+}
+export type AppName = (typeof AppName)[keyof typeof AppName]

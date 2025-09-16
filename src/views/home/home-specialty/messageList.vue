@@ -1,19 +1,19 @@
 <template>
-  <div class="flex flex-col gap-4 font-bold">
+  <div class="flex flex-col gap-8 font-bold">
     <template v-for="(item, index) in agentMessageList" :key="index">
       <!-- user -->
       <div
-        class="bg-linear-to-r from-[#6886fc] to-[#6958fb] text-white p-4 max-w-[70%] rounded-bl-3xl rounded-t-3xl self-end"
+        class="bg-linear-to-r from-[#6886fc] to-[#6958fb] text-white p-8 max-w-[70%] rounded-bl-3xl rounded-t-3xl self-end"
         v-if="item.type === 'user'">
-        <pre class="whitespace-break-spaces font-[auto] text-sm">{{ item.text }}</pre>
+        <pre class="whitespace-break-spaces font-[auto] text-5xl">{{ item.text }}</pre>
       </div>
       <!-- agent -->
       <div
-        class="bg-white/60 text-gray-600 p-4 max-w-[100%] rounded-tr-3xl rounded-b-3xl self-start flex items-start gap-2"
+        class="bg-white/60 text-gray-600 p-8 max-w-[100%] rounded-tr-3xl rounded-b-3xl self-start flex items-start gap-6"
         v-else-if="item.type === 'agent'">
-        <img class="w-5" :src="ChatBot">
-        <div v-if="item.messageType === MessageType.IMAGE" class="w-[calc(100%-30px)] max-w-[300px]">
-          <img class="w-full" @load="onImageLoad" :src="typeof item.text === 'string' ? item.text : ''">
+        <img class="w-10" :src="ChatBot">
+        <div v-if="item.messageType === MessageType.IMAGE" class="w-[calc(100%-30px)] max-w-[800px]">
+          <img class="w-full min-w-[500px]" :src="typeof item.text === 'string' ? item.text : ''">
         </div>
         <div v-else-if="item.loading" class="flex items-center self-center gap-2">
           <div class="size-1.5 bg-[#2EDAF9] rounded-full loading"></div>
@@ -22,40 +22,39 @@
         </div>
         <!-- 当数据是菜单数组 -->
         <div v-else-if="item.messageType === MessageType.JSON_MENU"
-          class="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4">
-          <div class="flex flex-col gap-2 rounded-2xl shadow-[0_0_10px_4px_rgba(0,0,0,0.1)]"
+          class="grid grid-cols-1 gap-4 lg:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-4 rounded-2xl shadow-[0_0_10px_4px_rgba(0,0,0,0.1)]"
             v-for="product in item.text as Product[]">
-            <div class="w-full min-h-[100px] flex-1">
-              <img class="w-full rounded-2xl" @load="onImageLoad" :src="product.logo" alt="">
+            <div class="flex-1">
+              <img class="w-[600px] rounded-2xl" @load="onImageLoad" :src="product.logo" alt="">
             </div>
-            <h3 class="text-sm px-4">{{ product.productName }}</h3>
+            <h3 class="text-4xl px-4">{{ product.productName }}</h3>
             <div class="flex justify-between items-end px-4 pb-4">
-              <p class="text-xs w-[70%] truncate">{{ product.productContent }}</p>
-              <p class="text-xs">{{ product.productPrice }}￥</p>
+              <p class="text-2xl w-[70%] truncate">{{ product.productContent }}</p>
+              <p class="text-2xl">{{ product.productPrice }}￥</p>
             </div>
           </div>
         </div>
         <!-- 当数据是餐厅数组 -->
         <div v-else-if="item.messageType === MessageType.JSON_RESTAURANT"
-          class="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4">
+          class="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <div class="flex flex-col gap-2 rounded-2xl shadow-[0_0_10px_4px_rgba(0,0,0,0.1)]" v-for="shop in item.text as Shop[]">
-            <div class="w-full min-h-[100px] flex-1">
-              <img class="w-full rounded-2xl" @load="onImageLoad" :src="shop.logo" alt="">
+            <div class="flex-1">
+              <img class="w-[600px] rounded-2xl" @load="onImageLoad" :src="shop.logo" alt="">
             </div>
-            <h3 class="text-sm px-4">{{ shop.shopName }}</h3>
+            <h3 class="text-4xl px-4">{{ shop.shopName }}</h3>
             <div class="flex justify-between items-end px-4 pb-4">
-              <p class="text-xs w-[70%] truncate">{{ shop.shopDescription }}</p>
+              <p class="text-2xl w-[70%] truncate">{{ shop.shopDescription }}</p>
             </div>
           </div>
         </div>
         <!-- 当数据是html -->
         <div v-else-if="item.messageType === MessageType.HTML" v-html="item.text"></div>
         <!-- 当数据是mackdown -->
-        <!--  @onHtmlChanged="onHtmlChanged" -->
         <div v-else-if="item.messageType === MessageType.MARKDOWN && typeof item.text === 'string'">
           <MdPreview class="px-2 bg-[#f8f8f6]!" v-model="item.text" />
         </div>
-        <pre v-else class="whitespace-break-spaces font-[auto] text-sm">{{ item.text }}</pre>
+        <pre v-else class="whitespace-break-spaces font-[auto] text-5xl">{{ item.text }}</pre>
       </div>
     </template>
   </div>
@@ -79,15 +78,6 @@ const agentMessageList = toRef(props, 'agentMessageList')
 const onImageLoad = () => {
   emit('imageLoad')
 }
-/* const onHtmlChanged = () => {
-  const previewContainer = document.querySelector('.md-editor-preview');
-  const images = previewContainer?.querySelectorAll('img');
-  images?.forEach(image => {
-    image.addEventListener('load', () => {
-      emit('imageLoad')
-    })
-  });
-} */
 </script>
 
 <style lang="scss" scoped>
