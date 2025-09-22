@@ -13,7 +13,7 @@
         v-else-if="item.type === 'agent'">
         <img class="w-10" :src="ChatBot">
         <div v-if="item.messageType === MessageType.IMAGE" class="w-[calc(100%-30px)] max-w-[800px]">
-          <img class="w-full min-w-[500px]" :src="typeof item.text === 'string' ? item.text : ''">
+          <img @load="onImageLoad" class="w-full min-w-[500px]" :src="typeof item.text === 'string' ? item.text : ''">
         </div>
         <div v-else-if="item.loading" class="flex items-center self-center gap-2">
           <div class="size-1.5 bg-[#2EDAF9] rounded-full loading"></div>
@@ -21,8 +21,7 @@
           <div class="size-1.5 bg-[#FFDE9C] rounded-full loading3"></div>
         </div>
         <!-- 当数据是菜单数组 -->
-        <div v-else-if="item.messageType === MessageType.JSON_MENU"
-          class="grid grid-cols-1 gap-4 lg:grid-cols-2 gap-4">
+        <div v-else-if="item.messageType === MessageType.JSON_MENU" class="grid grid-cols-1 gap-4 lg:grid-cols-2 gap-4">
           <div class="flex flex-col gap-4 rounded-2xl shadow-[0_0_10px_4px_rgba(0,0,0,0.1)]"
             v-for="product in item.text as Product[]">
             <div class="flex-1">
@@ -36,9 +35,9 @@
           </div>
         </div>
         <!-- 当数据是餐厅数组 -->
-        <div v-else-if="item.messageType === MessageType.JSON_RESTAURANT"
-          class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <div class="flex flex-col gap-2 rounded-2xl shadow-[0_0_10px_4px_rgba(0,0,0,0.1)]" v-for="shop in item.text as Shop[]">
+        <div v-else-if="item.messageType === MessageType.JSON_RESTAURANT" class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div class="flex flex-col gap-2 rounded-2xl shadow-[0_0_10px_4px_rgba(0,0,0,0.1)]"
+            v-for="shop in item.text as Shop[]">
             <div class="flex-1">
               <img class="w-[600px] rounded-2xl" @load="onImageLoad" :src="shop.logo" alt="">
             </div>

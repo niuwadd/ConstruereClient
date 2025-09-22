@@ -1,106 +1,106 @@
 <template>
-  <div class="home-base">
-    <div
-      class="backdrop-blur-sm size-full px-4 sm:px-10 pt-30 flex flex-col gap-10"
-    >
-      <h1 class="flex justify-center items-center gap-4 text-white text-4xl">
-        <img class="w-[50px]" :src="logo" alt="" />
-        <span>Construere</span>
-      </h1>
-      <div class="flex justify-center">
-        <div
-          class="w-full xl:w-1/2 h-12 bg-gray-200/50 rounded-3xl flex items-center px-4"
-        >
-          <input class="w-full focus:outline-[0px]" type="text" />
-        </div>
+  <div class="bg-linear-to-b from-[#E4DBED] via-[#E8EADE] to-[#ECDEDF] h-full overflow-hidden relative">
+    <!-- 卡片 -->
+    <div class="size-full flex items-center justify-center relative">
+      <div class="flex flex-col justify-between items-center absolute left-4">
+        <ul class="flex gap-6 flex-col portrait:flex-row">
+          <li v-for="item in agentList" class="size-16" :class="item.isActive ? '' : 'opacity-50'">
+            <img :src="item.icon" alt="" />
+          </li>
+        </ul>
       </div>
-      <div class="home-base-app">
-        <div class="text-white" v-for="() in 10"></div>
-      </div>
+      <img v-show="!isOpen" @click="openModal" class="bot-img w-[480px]" :src="currentAgent?.icon" alt=""></img>
+      <transition name="agentImg">
+        <img v-show="isOpen" class="bot-img w-[180px]" :src="currentAgent?.icon">
+      </transition>
     </div>
-    <!-- Dialog -->
-    <TransitionRoot appear :show="isOpen" as="template">
-      <Dialog as="div" @close="closeModal" class="relative z-10">
-        <TransitionChild
-          as="template"
-          enter="duration-300 ease-out"
-          enter-from="opacity-0"
-          enter-to="opacity-100"
-          leave="duration-200 ease-in"
-          leave-from="opacity-100"
-          leave-to="opacity-0"
-        >
-          <div class="fixed inset-0 bg-black/25"></div>
-        </TransitionChild>
-        <div class="fixed inset-0 overflow-y-auto">
-          <div
-            class="flex min-h-full items-center justify-center p-4 text-center"
-          >
-            <TransitionChild
-              as="template"
-              enter="duration-300 ease-out"
-              enter-from="opacity-0 scale-95"
-              enter-to="opacity-100 scale-100"
-              leave="duration-200 ease-in"
-              leave-from="opacity-100 scale-100"
-              leave-to="opacity-0 scale-95"
-            >
-              <DialogPanel
-                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all"
-              >
-                <!-- <DialogTitle
-                  as="h3"
-                  class="text-lg font-medium leading-6 text-gray-900"
-                >
-                  Payment successful
-                </DialogTitle> -->
-                <div class="mt-2 flex justify-between">
-                  <!-- <div class="flex-1">
-                    <img class="w-[50px]" :src="logo" alt="" />
-                  </div> -->
-                  <Step class="w-[300px]"></Step>
-                </div>
-              </DialogPanel>
-            </TransitionChild>
-          </div>
-        </div>
-      </Dialog>
-    </TransitionRoot>
   </div>
 </template>
-<script setup lang="ts">
+<script lang="ts" setup>
 import { ref } from 'vue'
-import logo from '@/assets/image/logo.png'
-import {
-  TransitionChild,
-  TransitionRoot,
-  Dialog,
-  DialogPanel,
-} from '@headlessui/vue'
-import Step from '@/components/Step.vue'
-const isOpen = ref(true)
-
-const closeModal = (value: boolean) => {
-  isOpen.value = value
+import { useRouter } from 'vue-router'
+import Agent_medical from '@/assets/image/agent_medical.png'
+import Agent_repair from '@/assets/image/agent_repair.png'
+import Agent_takeout from '@/assets/image/agent_takeout.png'
+import Agent_chat from '@/assets/image/agent_chat.png'
+import Blink from '@/assets/image/Blink.gif'
+import type { Agent } from '../types'
+import { AppName } from '../enum'
+const router = useRouter()
+const isOpen = ref(false)
+// 智能体
+const agentList: Agent[] = [
+  {
+    name: '智能体',
+    title: '智能体',
+    title_1: '我是您的智能体',
+    description: 'Construere：唤醒硬件，智联万物',
+    icon: Blink,
+    isActive: true,
+  },
+  {
+    name: AppName.CHAT,
+    title: '社交助手智能体',
+    title_1: '我是您的社交助手',
+    description: '我可以为你做',
+    // description: '通过摄像头进行拍照，通过AI分析照片，并给出发生到的朋友圈文案',
+    icon: Agent_chat,
+    isActive: false,
+  },
+  {
+    name: AppName.MEDICAL,
+    title: '医疗助理智能体',
+    title_1: '我是您的医疗助理',
+    description: '我可以为你做',
+    icon: Agent_medical,
+    isActive: false,
+  },
+  {
+    name: AppName.TAKEOUT,
+    title: '点餐助手智能体',
+    title_1: '我是您的点餐助手',
+    // description: '通过语音交流进行点餐，通过AI分析点餐记录，并给出点餐建议',
+    description: '我可以为你做',
+    icon: Agent_takeout,
+    isActive: false,
+  },
+  {
+    name: AppName.REPAIR,
+    title: '车辆健康智能体',
+    title_1: '我是您的车辆健康管家',
+    description: '我可以为你做',
+    icon: Agent_repair,
+    isActive: false,
+  },
+]
+const openModal = () => {
+  router.push('/home-base')
 }
+// 当前智能体
+const currentAgent = ref<Agent | null>(agentList[0])
 </script>
-<style lang="scss">
-.home-base {
-  height: 100vh;
-  background: url('@/assets/image/background.jpg');
-  background-size: cover;
-  &-app {
-    display: grid;
-    // grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
-    grid-template-columns: repeat(auto-fill, 100px);
-    gap: 2rem;
-    > div {
-      background: rgba(255, 255, 255, 0.5);
-      // backdrop-filter: blur(10px);
-      border-radius: 8px;
-      padding: 12px;
-      height: 100px;
-    }
-  }
+<style lang="scss" scoped>
+.container {
+  /* IE 10+ */
+  -ms-overflow-style: none;
+
+  /* Firefox */
+  scrollbar-width: none;
+}
+
+.container::-webkit-scrollbar {
+  /* Webkit browsers */
+  display: none;
+}
+
+.agentImg-leave-to,
+.agentImg-enter-from {
+  opacity: 0;
+  transform: translateY(100px);
+}
+
+.agentImg-leave-active,
+.agentImg-enter-active {
+  transition: all 0.3s ease;
 }
 </style>

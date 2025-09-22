@@ -1,51 +1,60 @@
 <template>
   <div class="bg-linear-to-b from-[#E4DBED] via-[#E8EADE] to-[#ECDEDF] h-full overflow-hidden relative">
-    <div>
-      <!-- 卡片 -->
-      <div v-show="!agentMessageList.length" class="size-full flex items-center justify-center relative">
-        <div class="flex flex-col justify-between items-center absolute left-4">
-          <ul class="flex gap-6 flex-col portrait:flex-row">
-            <li v-for="item in agentList" class="size-20" :class="item.isActive ? '' : 'opacity-50'">
-              <img :src="item.icon" alt="" />
-            </li>
-          </ul>
+    <!-- 卡片 -->
+    <div class="size-full flex items-center justify-center relative">
+      <div class="flex flex-col justify-between items-center absolute left-4">
+        <ul class="flex gap-6 flex-col portrait:flex-row">
+          <li v-for="item in agentList" class="size-20" :class="item.isActive ? '' : 'opacity-50'">
+            <img :src="item.icon" alt="" />
+          </li>
+        </ul>
+      </div>
+      <img @click="openModal" class="bot-img w-[680px]" :src="currentAgent?.icon" alt=""></img>
+    </div>
+    <TransitionRoot appear :show="isOpen" as="template">
+      <Dialog as="div" @close="closeModal" class="relative z-10">
+        <div class="fixed inset-0">
+          <div class="flex min-h-full items-center justify-center p-4 text-center">
+            <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95">
+              <DialogPanel
+                class="w-full max-w-[80%] h-[calc(100vh-100px)] relative transform overflow-hidden rounded-2xl backdrop-blur-[10px] p-6 text-left align-middle shadow-[0_0_10px_4px_rgba(0,0,0,0.1)] transition-all">
+                <div @click="updateScroll"
+                  class="absolute top-0 left-0 z-[2] flex justify-center items-center gap-4 w-full py-4 backdrop-blur-[2px]">
+                  <span class="text-4xl font-bold text-gray-600">
+                    {{ currentAgent?.title }}
+                  </span>
+                  <div @click="isOpen = false" class="rounded-full cursor-pointer p-2 absolute top-2 right-2">
+                    <Close class="fill-gray-600 size-6" />
+                  </div>
+                </div>
+
+                <div ref="scrollRef" class="h-full relative overflow-hidden">
+                  <MessageList id="agentMessageList" class="py-10" @imageLoad="handleImageLoad"
+                    :agentMessageList="agentMessageList" />
+                </div>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+          <!-- 录音 -->
+          <div class="absolute justify-center z-20 left-5 bottom-10 ">
+            <div class="relative">
+              <div @mousedown.passive="handleRecorderTouchstart" @mouseup.passive="handleRecorderTouchend"
+                class="relative z-20 size-[100px] rounded-full bg-[#6860ff] flex items-center justify-center">
+                <Microphone class=" relative z-10" />
+              </div>
+              <div ref="recorderBgRef1"
+                class="absolute inset-0 size-[100px] rounded-full bg-black/20 z-10 transition-all duration-300"
+                :class="isAnimating ? 'recorder-bg-1' : ''"></div>
+              <div ref="recorderBgRef2" class="absolute inset-0 size-[100px] rounded-full bg-black/10 z-10"
+                :class="isAnimating ? 'recorder-bg-2' : ''"></div>
+            </div>
+          </div>
         </div>
-        <img class="bot-img w-[880px]" :src="currentAgent?.icon" alt=""></img>
-      </div>
-      <!-- <div ref="scrollRef" class="w-[80%] m-auto h-full overflow-hidden">
-        <MessageList id="agentMessageList" class="px-20 py-20" :agentMessageList="agentMessageList" />
-      </div> -->
-    </div>
-    <!-- 消息列表 -->
-    <div v-show="agentMessageList.length">
-      <div @click="updateScroll"
-        class="absolute top-0 z-[2] flex justify-center items-center gap-4 w-full py-4 backdrop-blur-[2px]">
-        <span class="text-6xl font-bold">
-          {{ currentAgent?.title }}
-        </span>
-      </div>
-    </div>
-    <div v-show="agentMessageList.length" ref="scrollRef" class="w-[80%] m-auto h-full overflow-hidden">
-      <MessageList id="agentMessageList" class="px-20 py-24" :agentMessageList="agentMessageList" />
-    </div>
-    <div v-show="agentMessageList.length">
-      <img class="absolute top-2 left-2 z-[2] w-[100px]" :src="currentAgent?.icon" alt="">
-      </img>
-    </div>
-    <!-- 录音 -->
-    <div class="flex justify-center w-full pb-10 absolute bottom-0 left-[50%] transform-[translateX(-50%)]">
-      <div class="relative">
-        <div @mousedown.passive="handleRecorderTouchstart" @mouseup.passive="handleRecorderTouchend"
-          class="relative z-20 size-[100px] rounded-full bg-[#6860ff] flex items-center justify-center">
-          <Microphone class=" relative z-10" />
-        </div>
-        <div ref="recorderBgRef1"
-          class="absolute inset-0 size-[100px] rounded-full bg-black/20 z-10 transition-all duration-300"
-          :class="isAnimating ? 'recorder-bg-1' : ''"></div>
-        <div ref="recorderBgRef2" class="absolute inset-0 size-[100px] rounded-full bg-black/10 z-10"
-          :class="isAnimating ? 'recorder-bg-2' : ''"></div>
-      </div>
-    </div>
+      </Dialog>
+    </TransitionRoot>
+
     <audio @ended="isAudioPlay = false" class="hidden" controls ref="audioPlayRef" type="audio/mpeg"></audio>
   </div>
 </template>
@@ -60,19 +69,25 @@ import Camera_1 from '@/assets/image/camera_1.png'
 import Navigation_1 from '@/assets/image/navigation_1.png'
 import Phone_1 from '@/assets/image/phone_1.png'
 import Component from '@/assets/image/component.png'
-import Agent_default from '@/assets/image/agent_default.png'
 import Agent_medical from '@/assets/image/agent_medical.png'
 import Agent_repair from '@/assets/image/agent_repair.png'
 import Agent_takeout from '@/assets/image/agent_takeout.png'
 import Agent_chat from '@/assets/image/agent_chat.png'
 import Car from '@/assets/image/car.png'
+import Blink from '@/assets/image/Blink.gif'
 // 工具
 import { sendIntent, socketState } from '@/utils/AIOSService'
-// import { getTimeGreeting } from '@/utils'
 import BScroll from '@better-scroll/core'
 // 组件
 import MessageList from './messageList.vue'
+import {
+  TransitionRoot,
+  TransitionChild,
+  Dialog,
+  DialogPanel,
+} from '@headlessui/vue'
 import Microphone from '@/assets/svg/microphone.svg'
+import Close from '@/assets/svg/close.svg'
 import type { Agent, Message, Hardware, Product, Shop, MessageText } from '../types'
 import { TaskType, IntentType, ProviderType, MessageType, AppName } from '../enum'
 // dom
@@ -83,7 +98,6 @@ const scrollRef = ref<HTMLElement | null>(null)
 const hardwareScrollRef = ref<HTMLElement | null>(null)
 const pressTimer = ref<number | null>(null)
 const isAnimating = ref<boolean>(false)
-
 const isMonitoring = ref<boolean>(true)
 // 是否播放
 const isAudioPlay = ref<boolean>(false)
@@ -92,7 +106,6 @@ const isPlaying = ref(false)
 const playQueue = reactive<Array<{ text: string, viewText: MessageText, msgType: MessageType }>>([])
 // 智能体消息列表
 const agentMessageList = reactive<Message[]>([])
-
 // 硬件列表
 const hardwareList = reactive<Hardware[]>([
   {
@@ -146,30 +159,31 @@ const hardwareDataList = reactive<Hardware[]>([
 // Intent相关
 const currentIntentType = ref<IntentType>(IntentType.ASR)
 const currentIntentId = ref<string>('')
-// 
 const bs = ref<BScroll | null>(null)
+
 onMounted(() => {
   // 开启音频媒体流
   handleRecorder()
   // 监听方向变化
   orientationchange()
-  // 初始化滚动
-  initBScroll()
   // 发送一个greetings
   sendIntent(IntentType.GREETINGS, { greetings: '' })
+
   setTimeout(() => {
+    return
     handleAgentMessageListChange()
-    // handleAgent(AppName.TAKEOUT)
-    // handlePlayQueue('今天星期一，天气很好', '今天星期一，天气很好', MessageType.TEXT)
+    handleAgent(AppName.TAKEOUT)
+    handlePlayQueue('今天星期一，天气很好', '今天星期一，天气很好', MessageType.TEXT)
   }, 3000)
 
-  const resize = new ResizeObserver((entries) => {
+  /* const resize = new ResizeObserver((entries) => {
     if (scrollRef.value && entries[0].contentRect.height > scrollRef.value.clientHeight) {
       updateScroll()
     }
   })
-  resize.observe(document.querySelector('#agentMessageList') as Element)
+  resize.observe(document.querySelector('#agentMessageList') as Element) */
 })
+
 // 模拟agentMessageList变化
 function handleAgentMessageListChange() {
   agentMessageList.push(
@@ -281,15 +295,6 @@ watchEffect(async () => {
             }).join('。')
             arsViewMessage = shopData.shop_list
             break;
-          /* case MessageType.USER:
-            try {
-              const { userId } = JSON.parse(message)
-              arsMessage = `${getTimeGreeting()},${userId}`
-              arsViewMessage = `${getTimeGreeting()},${userId}`
-            } catch (error) {
-              console.error('不是一个有效的USER数据', message)
-            }
-            break; */
           case MessageType.WEATHER:
             const { result: weatherData } = JSON.parse(message)
             arsMessage = `今天是${weatherData.date}，${weatherData.week}，${weatherData.city}天气${weatherData.weather}`
@@ -335,29 +340,36 @@ watchEffect(async () => {
     }
     // 图片处理
     if (nodeTitle === ProviderType.CAMERA && msg.includes(MessageType.IMAGE)) {
-      // const messageImg = `data:image/jpeg;base64,${msg}`
-      // const messageImg = `http://127.0.0.1:8090/uploaded_image.jpg?t=${uuid()}`
       handlePlayQueue('', msg, MessageType.IMAGE)
 
       console.log('图片--------------------', msg)
     }
   } catch (error) {
     console.error('不是一个有效的JSON数据', error)
-    // 保存为tet下载
-    /* const blob = new Blob([socketState.message], { type: 'application/octet-stream' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'message.txt'
-    a.click() */
     const p = socketState.message.split(',')
     console.log(p)
   }
 })
 // 监听消息列表变化
-/* watch(agentMessageList, () => {
+watch(agentMessageList, () => {
+  if (!isOpen.value) {
+    isOpen.value = true
+    // 初始化滚动
+    initBScroll()
+  }
   updateScroll()
-}) */
+})
+const isOpen = ref(false)
+
+function closeModal() {
+  // isOpen.value = false
+}
+function openModal() {
+  isOpen.value = true
+  // 初始化滚动
+  resetScroll()
+}
+
 /**
  * 处理TTS消息
  * @param message 待处理的消息
@@ -409,19 +421,19 @@ const handleTTSMessage = (message: string): { message: string; type: MessageType
     message
   }
 }
-/**
- * 提取markdown标题
- * @param text 待处理的文本
- * @returns 提取的标题
- */
+
+// 监听图片加载完成
+const handleImageLoad = () => {
+  updateScroll()
+}
 // 智能体
 const agentList: Agent[] = [
   {
     name: '智能体',
     title: '智能体',
     title_1: '我是您的智能体',
-    description: 'AIOS 3.0：唤醒硬件，智联万物',
-    icon: Agent_default,
+    description: 'Construere：唤醒硬件，智联万物',
+    icon: Blink,
     isActive: true,
   },
   {
@@ -493,6 +505,8 @@ const orientationchange = () => {
 // 初始化滚动
 const initBScroll = () => {
   nextTick(() => {
+    console.log(scrollRef.value);
+
     if (scrollRef.value) {
       bs.value = new BScroll(scrollRef.value, {
         probeType: 3,
@@ -613,7 +627,8 @@ const handleAudioPlay = (filePath: string): Promise<void> => {
 }
 // 处理对话列表
 const handleDialogueList = (message: MessageText, messageType: string) => {
-  if (agentMessageList[agentMessageList.length - 1].loading) {
+  console.log(agentMessageList);
+  if (agentMessageList.length && agentMessageList[agentMessageList.length - 1].loading) {
     agentMessageList[agentMessageList.length - 1] = {
       text: message,
       type: 'agent',

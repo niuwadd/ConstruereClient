@@ -27,6 +27,9 @@ export default defineConfig({
     },
   },
   assetsInclude: ['**/*.fbx'],
+  define: {
+    'process.env.NODE_ENV': JSON.stringify('production'),
+  },
   /* build: {
     rollupOptions: {
       output: {

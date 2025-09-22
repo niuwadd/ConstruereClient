@@ -7,17 +7,10 @@
         <li v-for="item in agentList" class="size-8 sm:size-10" :class="item.isActive ? '' : 'opacity-50'">
           <img :src="item.icon" alt="" />
         </li>
-        <li class="size-[40px] flex justify-center items-center rounded-full bg-white/50"
-          @click="currentAgent && (currentAgent.isActive = !currentAgent.isActive)">
-          <Plus class="size-[60%]" />
-        </li>
       </ul>
       <div class="flex flex-col gap-2 portrait:flex-row">
-        <div class="size-[40px] flex justify-center items-center rounded-full bg-white/50">
-          <Settings class="size-[60%]" />
-        </div>
-        <div class="size-[40px] rounded-full bg-white/50">
-          <img :src="Avatar">
+        <div @click="router.go(-1)" class="size-[40px] flex justify-center items-center rounded-full bg-white/50">
+          <Left class="size-[60%]" />
         </div>
       </div>
     </div>
@@ -32,9 +25,11 @@
       <div class="rounded-4xl shadow-[0_0_10px_4px_rgba(0,0,0,0.1)] relative p-1 mt-20">
         <div class="flex flex-col gap-2 rounded-4xl py-4 px-6">
           <div class="min-h-[120px] relative">
-            <img class="bot-img w-[180px] absolute -top-24 left-[50%] transform-[translateX(-50%)]"
-              :src="currentAgent?.icon" alt="">
-            </img>
+            <Transition name="hander" mode="out-in">
+              <img class="bot-img w-[180px] absolute -top-24 left-[50%] transform-[translateX(-50%)]"
+                :src="currentAgent?.icon" :key="currentAgent?.title">
+              </img>
+            </Transition>
           </div>
           <div class="text-xl font-bold font-sans text-gray-600 relative z-[2]">
             <p>您好，</p>
@@ -79,6 +74,7 @@
       <div class="absolute bottom-0 z-[2] w-full py-4 backdrop-blur-[2px] flex justify-center">
         <div class="relative">
           <div @touchstart.passive="handleRecorderTouchstart" @touchend.passive="handleRecorderTouchend"
+            @contextmenu="(e) => { e.preventDefault() }"
             class="relative z-20 size-[70px] rounded-full bg-linear-to-r from-[#6886fc] to-[#6958fb] flex items-center justify-center">
             <Microphone class="scale-65 relative z-10" />
           </div>
@@ -109,7 +105,7 @@
         </div>
       </div>
     </Transition>
-    <audio @ended="isAudioPlay = false" class="hidden" controls ref="audioPlayRef"></audio>
+    <audio ref="audioPlayRef" @ended="isAudioPlay = false" class="hidden" controls></audio>
   </div>
 </template>
 <script lang="ts" setup>
@@ -128,7 +124,6 @@ import Agent_medical from '@/assets/image/agent_medical.png'
 import Agent_repair from '@/assets/image/agent_repair.png'
 import Agent_takeout from '@/assets/image/agent_takeout.png'
 import Agent_chat from '@/assets/image/agent_chat.png'
-import Avatar from '@/assets/image/avatar.png'
 import Car from '@/assets/image/car.png'
 // 工具
 import * as THREE from 'three'
@@ -137,15 +132,20 @@ import { FBXLoader, OrbitControls } from 'three-stdlib'
 import { sendIntent, socketState } from '@/utils/AIOSService'
 import { getTimeGreeting } from '@/utils'
 import BScroll from '@better-scroll/core'
-// import MarkdownIt from 'markdown-it'
 // 组件
 import MessageList from './model/messageList.vue'
 import Microphone from '@/assets/svg/microphone.svg'
-import Settings from '@/assets/svg/settings.svg'
-import Plus from '@/assets/svg/plus.svg'
-// NodeType, CurState, 
+import Left from '@/assets/svg/left.svg'
 import type { Agent, Message, Hardware, Product, Shop, MessageText } from './types'
 import { TaskType, IntentType, ProviderType, MessageType, AppName } from './enum'
+import router from '@/router'
+import { useMessageHandler } from './composables/index'
+const {
+  agentMessageList,
+  handleTTSMessage,
+  handleDialogueList
+} = useMessageHandler()
+
 // dom
 const canvasRef = ref<HTMLElement | null>(null)
 const recorderBgRef1 = ref<HTMLElement | null>(null)
@@ -163,13 +163,6 @@ const isAudioPlay = ref<boolean>(false)
 const isPlaying = ref(false)
 
 const playQueue = reactive<Array<{ text: string, viewText: MessageText, msgType: MessageType }>>([])
-// 智能体消息列表
-const agentMessageList = reactive<Message[]>([
-  {
-    text: '欢迎来到智能体，我是你的智能助手',
-    type: 'agent',
-  },
-])
 // 硬件列表
 const hardwareList = reactive<Hardware[]>([
   {
@@ -236,7 +229,9 @@ onMounted(() => {
   // 发送一个greetings
   sendIntent(IntentType.GREETINGS, { greetings: '' })
   setTimeout(() => {
-    // handleAgentMessageListChange()
+    return
+    handleAgentMessageListChange()
+    handleAgent(AppName.TAKEOUT)
   }, 1000)
 
 
@@ -334,13 +329,11 @@ watchEffect(async () => {
             const { userId } = JSON.parse(message)
             arsMessage = `${getTimeGreeting()},${userId}`
             arsViewMessage = `${getTimeGreeting()},${userId}`
-            console.log(arsMessage);
             break;
           case MessageType.WEATHER:
             const { result: weatherData } = JSON.parse(message)
             arsMessage = `今天是${weatherData.date}，${weatherData.week}，${weatherData.city}天气${weatherData.weather}`
             arsViewMessage = `今天是${weatherData.date}，${weatherData.week}，${weatherData.city}天气${weatherData.weather}`
-            console.log(arsMessage);
             break;
           case MessageType.MARKDOWN:
             const regex = /notify```\s*([\s\S]*?)```/
@@ -379,21 +372,12 @@ watchEffect(async () => {
     }
     // 图片处理
     if (nodeTitle === ProviderType.CAMERA && msg.includes(MessageType.IMAGE)) {
-      // const messageImg = `data:image/jpeg;base64,${msg}`
-      // const messageImg = `http://127.0.0.1:8090/uploaded_image.jpg?t=${uuid()}`
       handlePlayQueue('', msg, MessageType.IMAGE)
 
       console.log('图片--------------------', msg)
     }
   } catch (error) {
     console.error('不是一个有效的JSON数据', error)
-    // 保存为tet下载
-    /* const blob = new Blob([socketState.message], { type: 'application/octet-stream' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'message.txt'
-    a.click() */
     const p = socketState.message.split(',')
     console.log(p)
   }
@@ -402,62 +386,7 @@ watchEffect(async () => {
 watch(agentMessageList, () => {
   updateScroll()
 })
-/**
- * 处理TTS消息
- * @param message 待处理的消息
- * @returns 处理后的消息
- */
-const handleTTSMessage = (message: string): { message: string; type: MessageType } => {
-  const regexs = [
-    {
-      type: MessageType.HTML,
-      regex: /html```\s*([\s\S]*?)```/
-    },
-    {
-      type: MessageType.MARKDOWN,
-      regex: /markdown```\s*([\s\S]*?)```/
-    },
-    /* {
-      type: MessageType.JSON,
-      regex: /[\u4e00-\u9fff]+```([^`]+)```/
-    }, */
-    {
-      type: MessageType.JSON_RESTAURANT,
-      regex: /饭店```([^`]+)```/
-    },
-    {
-      type: MessageType.JSON_MENU,
-      regex: /菜单```([^`]+)```/
-    },
-    {
-      type: MessageType.USER,
-      regex: /user```([^`]+)```/
-    },
-    {
-      type: MessageType.WEATHER,
-      regex: /weather```([^`]+)```/
-    },
-  ]
-  console.log('开始校验', message);
-  for (const item of regexs) {
-    if (message.match(item.regex)?.[1]) {
-      console.log('匹配成功', item.type);
-      return {
-        type: item.type,
-        message: message.match(item.regex)?.[1] || ''
-      }
-    }
-  }
-  return {
-    type: MessageType.TEXT,
-    message
-  }
-}
-/**
- * 提取markdown标题
- * @param text 待处理的文本
- * @returns 提取的标题
- */
+
 // 监听图片加载完成
 const handleImageLoad = () => {
   updateScroll()
@@ -468,7 +397,7 @@ const agentList: Agent[] = [
     name: '智能体',
     title: '智能体',
     title_1: '我是您的智能体',
-    description: 'AIOS 3.0：唤醒硬件，智联万物',
+    description: 'Construere：唤醒硬件，智联万物',
     icon: Agent_default,
     isActive: true,
   },
@@ -512,15 +441,17 @@ const currentAgent = ref<Agent | null>(agentList[0])
 // 选择智能体
 const handleAgent = (text: string) => {
   const agentFind = agentList.find((v) => v.name === text)
+  console.log(agentList);
+
   if (agentFind) {
     currentAgent.value = agentFind
-    return
-    init3DModel()
   } else {
     currentAgent.value = agentList[0]
   }
   for (const agent of agentList) agent.isActive = false
   currentAgent.value.isActive = true
+  return
+  init3DModel()
 }
 // 屏幕方向
 const screenOrientation = ref<number>(screen.orientation.angle)
@@ -754,7 +685,8 @@ const handlePlayQueue = (msg: string, viewMsg: MessageText, msgType: MessageType
 const handleAudioPlay = (filePath: string): Promise<void> => {
   return new Promise((resolve) => {
     if (audioPlayRef.value) {
-      audioPlayRef.value.src = location.href + filePath
+      audioPlayRef.value.src = location.origin + '/' + filePath
+      console.log(audioPlayRef.value.src);
       // 监听播放完成事件
       const onEnded = () => {
         audioPlayRef.value?.removeEventListener('ended', onEnded)
@@ -775,19 +707,6 @@ const handleAudioPlay = (filePath: string): Promise<void> => {
   })
 
 }
-// 处理对话列表
-const handleDialogueList = (message: MessageText, messageType: string) => {
-  if (agentMessageList[agentMessageList.length - 1].loading) {
-    agentMessageList[agentMessageList.length - 1] = {
-      text: message,
-      type: 'agent',
-      messageType
-    }
-  } else {
-    agentMessageList.push({ text: message, type: 'agent', messageType })
-  }
-}
-// 给硬件设备添加图片
 
 // 是否有录音权限
 const hasRecorderPermission = ref(true)
@@ -1034,29 +953,6 @@ const ttsApi = (
         msg: string
         code: 0
       }) => {
-        /* if (audioPlayRef.value) {
-          audioPlayRef.value.src = location.href + res.file
-          // 监听播放完成事件
-          const onEnded = () => {
-            audioPlayRef.value?.removeEventListener('ended', onEnded)
-            console.log('播放完成', new Date().getTime())
-            resolve()
-          }
-          // 监听播放暂停
-          const onPause = () => {
-            audioPlayRef.value?.removeEventListener('pause', onPause)
-            console.log('播放暂停', new Date().getTime())
-            resolve()
-          }
-          audioPlayRef.value.addEventListener('ended', onEnded)
-          audioPlayRef.value.addEventListener('pause', onPause)
-          audioPlayRef.value.play().catch((e) => {
-            console.error('播放失败:', e)
-            resolve() // 即使播放失败也继续队列
-          })
-        } else {
-          resolve()
-        } */
         resolve(res)
       })
       .catch((error) => {
@@ -1129,13 +1025,22 @@ const ttsApi = (
   transition: all 0.3s ease;
 }
 
-.hander-leave-to,
+
 .hander-enter-from {
   opacity: 0;
+  transform: translate(-50%, 100px);
 }
 
-.hander-leave-active,
+.hander-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -100px);
+}
+
 .hander-enter-active {
+  transition: all 0.5s ease;
+}
+
+.hander-leave-active {
   transition: all 0.3s ease;
 }
 </style>
