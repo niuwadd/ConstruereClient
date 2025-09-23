@@ -5,7 +5,7 @@ import { MessageType } from '../enum'
 export default function useMessageHandler() {
   const agentMessageList = reactive<Message[]>([
     {
-      text: 'AIOS 3.0：唤醒硬件，智联万物',
+      text: 'Construere：唤醒硬件，智联万物',
       type: 'agent',
     },
   ])

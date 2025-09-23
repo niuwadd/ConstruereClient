@@ -136,9 +136,10 @@ import BScroll from '@better-scroll/core'
 import MessageList from './model/messageList.vue'
 import Microphone from '@/assets/svg/microphone.svg'
 import Left from '@/assets/svg/left.svg'
-import type { Agent, Message, Hardware, Product, Shop, MessageText } from './types'
+import type { Agent, Hardware, Product, Shop, MessageText } from './types'
 import { TaskType, IntentType, ProviderType, MessageType, AppName } from './enum'
 import router from '@/router'
+// 逻辑
 import { useMessageHandler } from './composables/index'
 const {
   agentMessageList,
@@ -146,7 +147,6 @@ const {
   handleDialogueList
 } = useMessageHandler()
 
-// dom
 const canvasRef = ref<HTMLElement | null>(null)
 const recorderBgRef1 = ref<HTMLElement | null>(null)
 const recorderBgRef2 = ref<HTMLElement | null>(null)
