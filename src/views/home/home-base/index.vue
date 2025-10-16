@@ -1,6 +1,5 @@
 <template>
   <div class="bg-linear-to-b from-[#E4DBED] via-[#E8EADE] to-[#ECDEDF] h-full overflow-hidden relative">
-    <!-- 卡片 -->
     <div class="size-full flex items-center justify-center relative">
       <div class="flex flex-col justify-between items-center absolute left-4">
         <ul class="flex gap-6 flex-col portrait:flex-row">
@@ -13,6 +12,9 @@
       <transition name="agentImg">
         <img v-show="isOpen" class="bot-img w-[180px]" :src="currentAgent?.icon">
       </transition>
+    </div>
+    <div @click="router.push('/dashboard')" class="absolute top-4 right-4 p-3 rounded-3xl text-gray-600 bg-white/30 backdrop-blur-2xl">
+      AIOS模式
     </div>
   </div>
 </template>

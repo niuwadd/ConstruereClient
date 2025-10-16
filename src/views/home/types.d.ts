@@ -27,9 +27,10 @@ export interface Shop {
 type UnionArray<T, U> = Array<T | U>
 export type MessageText = string | UnionArray<Product, Shop>
 export interface Message {
-  // text: string | any[]
   text: string | UnionArray<Product, Shop>
   type: 'user' | 'agent'
+  icon?: string
+  token?: string
   messageType?: string
   loading?: boolean
 }

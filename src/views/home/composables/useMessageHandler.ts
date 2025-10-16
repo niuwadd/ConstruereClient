@@ -47,7 +47,7 @@ export default function useMessageHandler() {
         regex: /weather```([^`]+)```/,
       },
     ]
-    console.log('开始校验', message)
+    // console.log('开始校验', message)
     for (const item of regexs) {
       if (message.match(item.regex)?.[1]) {
         console.log('匹配成功', item.type)

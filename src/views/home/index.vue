@@ -213,9 +213,14 @@ const hardwareDataList = reactive<Hardware[]>([
   }
 ])
 // Intent相关
+// 当前Intent类型
 const currentIntentType = ref<IntentType>(IntentType.ASR)
+// 当前Intent的id
 const currentIntentId = ref<string>('')
+// 当前Intent的token
 const currentIntenToken = ref<string>('')
+// 当前Intent的消息
+const currentIntentMsg = ref<string>('')
 
 const bs = ref<BScroll | null>(null)
 onMounted(() => {
@@ -232,18 +237,6 @@ onMounted(() => {
     handleAgentMessageListChange()
     handleAgent(AppName.TAKEOUT)
   }, 1000)
-
-
-  /* const resize = new ResizeObserver((entries) => {
-    if (scrollRef.value && entries[0].contentRect.height > scrollRef.value.clientHeight) {
-      updateScroll()
-    }
-  })
-  if (scrollRef.value) {
-    console.log(document.querySelector('#agentMessageList'));
-    console.log(scrollRef.value?.childNodes);
-    resize.observe(document.querySelector('#agentMessageList') as Element)
-  } */
 })
 
 // 模拟agentMessageList变化
@@ -279,17 +272,6 @@ const handleAgentMessageListChange = () => {
       type: 'user',
       messageType: MessageType.TEXT,
     }
-    /* {
-      text: {
-        logo: 'https://picsum.photos/200/300',
-        productContent: '这是商品内容',
-        productName: '商品名称',
-        productPrice: 100,
-        productId: '1',
-      },
-      type: 'agent',
-      messageType: MessageType.JSON_MENU,
-    }, */
   )
 }
 
@@ -332,6 +314,7 @@ watchEffect(async () => {
             break;
           case MessageType.WEATHER:
             const { result: weatherData } = JSON.parse(message)
+            console.log('天气相关', weatherData);
             arsMessage = `今天是${weatherData.date}，${weatherData.week}，${weatherData.city}天气${weatherData.weather}`
             arsViewMessage = `今天是${weatherData.date}，${weatherData.week}，${weatherData.city}天气${weatherData.weather}`
             break;
@@ -345,7 +328,7 @@ watchEffect(async () => {
             arsViewMessage = message
             break;
         }
-        handlePlayQueue(token, arsMessage, arsViewMessage, type)
+        handlePlayQueue(id, token, arsMessage, arsViewMessage, type)
         break;
       case TaskType.PROVIDER:
         hardwareList.forEach(item => {
@@ -358,8 +341,7 @@ watchEffect(async () => {
         })
         break;
       case TaskType.USER:
-        currentIntentId.value = id
-        handlePlayQueue(token, msg, msg, MessageType.TEXT, TaskType.USER)
+        handlePlayQueue(id, token, msg, msg, MessageType.TEXT, TaskType.USER)
         break
     }
     // 选择智能体
@@ -368,7 +350,7 @@ watchEffect(async () => {
     }
     // 图片处理
     if (nodeTitle === ProviderType.CAMERA && msg.includes(MessageType.IMAGE)) {
-      handlePlayQueue(token, '', msg, MessageType.IMAGE)
+      handlePlayQueue(id, token, '', msg, MessageType.IMAGE)
     }
   } catch (error) {
     console.error('不是一个有效的JSON数据', error)
@@ -483,7 +465,6 @@ const initBScroll = () => {
 // 重置滚动
 const resetScroll = () => {
   nextTick(() => {
-    console.log('屏幕方向改变, 刷新BS');
     // 先销毁现有的BScroll实例
     if (bs.value) {
       bs.value.destroy()
@@ -629,7 +610,10 @@ const analyserNode = ref<AnalyserNode | null>(null)
 const isPlaying = ref(false)
 // 当前是否在处理播放队列
 const isProcessing = ref(false)
+// 手动中断
+const breakPlayQueue = ref(false)
 interface Queue {
+  id: string,
   token: string,
   msg: string,
   viewMsg: MessageText,
@@ -638,84 +622,86 @@ interface Queue {
 }
 // 播放队列
 const playQueue = reactive<Array<Queue>>([])
+// 显示队列
+const viewQueue = reactive<Array<Queue>>([])
 /**
- * 处理播放队列
+ * 文本显示队列处理
  * @param msg 播放的文本
  * @param viewMsg 显示的文本
  * @param msgType 消息类型
  * @param intentType 意图类型
  */
-const handlePlayQueue = async (token: string, msg: string, viewMsg: MessageText, msgType: MessageType = 'text', taskType: TaskType = 'TTS'): Promise<void> => {
-  // 将播放请求加入队列
-  playQueue.push({ token, msg, viewMsg, msgType, taskType })
-  if (!isPlaying.value) {
-    isPlaying.value = true
-    if (!isProcessing.value) {
-      await processPlayQueue()
-    }
-  } else {
-    const checkQueue = setInterval(() => {
-      if (!isPlaying.value && playQueue.length === 0) {
-        clearInterval(checkQueue)
+const handlePlayQueue = async (id: string, token: string, msg: string, viewMsg: MessageText, msgType: MessageType = 'text', taskType: TaskType = 'TTS'): Promise<void> => {
+  viewQueue.push({ id, token, msg, viewMsg, msgType, taskType })
+  playQueue.push({ id, token, msg, viewMsg, msgType, taskType })
+  // 立即显示文字内容
+  if ((msg || viewMsg) && !isProcessing.value) {
+    processViewQueue()
+  }
+  // 将需要语音播报的内容加入播放队列（仅语音需要的内容）
+  if ((msg || msgType === MessageType.IMAGE)) {
+    if (!isPlaying.value) {
+      isPlaying.value = true
+      if (!isProcessing.value || msg === currentIntentMsg.value) {
+        await processPlayQueue()
       }
-    }, 100)
+    } else {
+      const checkQueue = setInterval(() => {
+        if (!isPlaying.value && playQueue.length === 0) {
+          clearInterval(checkQueue)
+        }
+      }, 100)
+    }
   }
 }
-/* const handlePlayQueue = async (token: string, msg: string, viewMsg: MessageText, msgType: MessageType = 'text', taskType: TaskType = 'TTS'): Promise<void> => {
-  // 将播放请求加入队列
-  playQueue.push({ token, text: msg, viewText: viewMsg, msgType, taskType })
-  if (!isPlaying.value) {
-    isPlaying.value = true
-    if (!isProcessing.value) {
-      console.log('队列暂停状态，剩余队列', playQueue);
-      await processPlayQueue()
-    }
-  } else {
-    // 如果正在播放，则在队列处理完后resolve
-    const checkQueue = setInterval(() => {
-      if (!isPlaying.value && playQueue.length === 0) {
-        clearInterval(checkQueue)
-      }
-    }, 100)
-  }
-} */
+/**
+ * 播放队列处理
+ */
 const processPlayQueue = async () => {
-  isProcessing.value = true
   while (playQueue.length > 0) {
+    // 检测是否手动中断
+    if (breakPlayQueue.value) break
     const item = playQueue.shift()
+    console.log('----------处理语音播报', item);
+    if (item && item.msg) {
+      const res = await ttsApi(item.msg)
+      await handleAudioPlay(res.file)
+      // 处理用户输入
+      if (item.taskType === TaskType.USER) {
+        handleRecorderTouchstart()
+        startVolumeDetection()
+      }
+      if (isProcessing.value && item.msg === currentIntentMsg.value) break
+    }
+  }
+  isPlaying.value = false
+}
+/**
+ * 显示队列处理
+ */
+const processViewQueue = () => {
+  while (viewQueue.length > 0) {
+    const item = viewQueue.shift()
+    console.log('----------处理消息显示', item);
     if (item) {
-      // 处理图片消息
+      handleDialogueList(item.viewMsg, item.msgType)
       if (item.msgType === MessageType.IMAGE) {
-        handleDialogueList(item.viewMsg, item.msgType)
         // 给摄像头硬件部分添加图片
         hardwareDataList[0].data = {
           type: 'img',
           value: item.viewMsg as string,
         }
       }
-      // 处理文本消息
-      else {
-        const res = await ttsApi(item.msg)
-        handleDialogueList(item.viewMsg, item.msgType)
-        await handleAudioPlay(res.file)
+      if (item.taskType === TaskType.USER) {
+        isProcessing.value = true
+        currentIntentId.value = item.id
+        currentIntenToken.value = item.token
+        currentIntentMsg.value = item.viewMsg as string
+        currentIntentType.value = IntentType.USERANSWER
       }
-    }
-    console.log('----------c处理', item);
-
-    // 处理用户输入
-    if (item?.taskType === TaskType.USER) {
-      // 停止循环
-      console.log('停止循环', item);
-      console.log('剩余队列', playQueue);
-      currentIntenToken.value = item.token
-      currentIntentType.value = IntentType.USERANSWER
-      handleRecorderTouchstart()
-      startVolumeDetection()
-      break
+      if (isProcessing.value) break
     }
   }
-  isProcessing.value = false
-  isPlaying.value = false
 }
 // 处理音频播放
 const handleAudioPlay = (filePath: string): Promise<void> => {
@@ -750,6 +736,15 @@ const handleRecorderTouchstart = () => {
   // 如果当前是在播放的状态，则暂停播放
   if (audioPlayRef.value && !audioPlayRef.value.paused) {
     audioPlayRef.value.pause()
+    // 开始录音时手动中断播放
+    breakPlayQueue.value = true
+    // 在开始播放之前，查看是否需要截断
+    if (currentIntentMsg.value) {
+      const currentIntentMsgIndex = playQueue.findIndex((item) => item.viewMsg === currentIntentMsg.value)
+      playQueue.splice(0, currentIntentMsgIndex + 1)
+    } else {
+      playQueue.splice(0)
+    }
   }
   pressTimer.value = setTimeout(() => {
     isAnimating.value = true
@@ -774,11 +769,10 @@ const handleRecorderTouchend = () => {
   if (pressTimer.value) {
     isAnimating.value = false
     isMonitoring.value = false
-    // 如果有播放队列，则处理播放队列
-
-    if (playQueue.length) {
-      processPlayQueue()
-    }
+    // 恢复自动中断
+    isProcessing.value = false
+    // 恢复手动中断
+    breakPlayQueue.value = false
     clearTimeout(pressTimer.value)
     if (hasRecorderPermission.value) {
       mediaRecorder.value?.stop()
@@ -857,6 +851,10 @@ const handleRecorderData = async (blob: Blob) => {
     // 恢复为ASR
     currentIntentType.value = IntentType.ASR
   }
+  if (!isProcessing.value && playQueue.length) {
+    processPlayQueue()
+  }
+  if (!isProcessing.value && viewQueue.length) processViewQueue()
 }
 // 在组件的响应式数据中定义
 const volumeDetectionState = reactive({
@@ -894,18 +892,15 @@ const detectVolume = () => {
   // 音量大于30则认为说过第一句话
   if (averageVolume >= volume && !volumeDetectionState.isFirstSentence) {
     volumeDetectionState.isFirstSentence = true;
-    console.log("开始说话，第一个字", averageVolume);
   }
 
   if (averageVolume >= volume && volumeDetectionState.isFirstSentence && volumeDetectionState.timerId) {
     clearTimeout(volumeDetectionState.timerId);
     volumeDetectionState.timerId = null;
-    console.log("继续说话", averageVolume);
   }
 
   // 音量小于30并且说过第一句话则认为说完了，等待一段时间后关闭监听
   if (averageVolume < volume && volumeDetectionState.isFirstSentence) {
-    console.log("没有声音了，等待3秒后取消声音监听", averageVolume);
     if (!volumeDetectionState.timerId) {
       volumeDetectionState.timerId = setTimeout(() => {
         volumeDetectionState.isMonitoring = false;
@@ -913,7 +908,6 @@ const detectVolume = () => {
           cancelAnimationFrame(volumeDetectionState.volumeDetectionRequestId);
           volumeDetectionState.volumeDetectionRequestId = null;
         }
-        console.log("取消声音监听，调用停止录音函数");
         handleRecorderTouchend();
       }, timeout);
     }

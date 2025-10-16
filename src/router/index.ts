@@ -22,6 +22,12 @@ const routes: RouteRecordRaw[] = [
     meta: { transition: 'chat' },
   },
   {
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: () => import('@/views/dashboard/index.vue'),
+    meta: { transition: 'dashboard' },
+  },
+  {
     path: '/home-specialty',
     name: 'home-specialty',
     component: () => import('@/views/home/home-specialty/index.vue'),
