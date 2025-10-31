@@ -18,6 +18,7 @@ export const TaskType = {
   NODE: 'NODE_EXECUTE_TASK',
   PROVIDER: 'PROVIDER',
   USER: 'GET_USER_ANSWER',
+  SHOWR: 'SHOW_RIGHT',
 } as const
 export type TaskType = (typeof TaskType)[keyof typeof TaskType]
 
@@ -54,6 +55,12 @@ export const AppName = {
   TAKEOUT: '外卖助手',
   MEDICAL: '医疗助理',
   REPAIR: '车辆健康管家',
-  CHAT: '发朋友圈'
+  CHAT: '发朋友圈',
 }
 export type AppName = (typeof AppName)[keyof typeof AppName]
+
+export const ShowRightType = {
+  IMAGE: 'image',
+  NAVIGATION: 'navigation',
+}
+export type ShowRightType = (typeof ShowRightType)[keyof typeof ShowRightType]

@@ -2,6 +2,10 @@ import { ref } from 'vue'
 
 export default function useScreenOrientation() {
   const screenOrientation = ref<number>(screen.orientation.angle)
+  const smScreen = ref<boolean>(screen.width < 640)
+  const mlScreen = ref<boolean>(screen.width < 768)
+  const lgScreen = ref<boolean>(screen.width < 1024)
+  const xlScreen = ref<boolean>(screen.width < 1280)
 
   const orientationchange = () => {
     window.addEventListener('orientationchange', function () {
@@ -14,9 +18,13 @@ export default function useScreenOrientation() {
       } else {
         screenOrientation.value = 90
       }
+      smScreen.value = screen.width < 640
+      mlScreen.value = screen.width < 768
+      lgScreen.value = screen.width < 1024
+      xlScreen.value = screen.width < 1280
     })
   }
-
+  orientationchange()
   return {
     screenOrientation,
     orientationchange,

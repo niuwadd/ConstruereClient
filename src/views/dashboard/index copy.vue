@@ -1,9 +1,8 @@
 <template>
-  <div class="dashboard size-full flex gap-4 p-10 portrait:flex-col">
-    <div
-      class="flex flex-col w-[400px] rounded-2xl bg-white/25 text-2xl font-bold relative portrait:w-full portrait:h-[400px]">
+  <div class="dashboard size-full flex gap-4 p-10">
+    <div class="flex flex-col w-[400px] rounded-2xl bg-white/25 text-2xl font-bold relative">
       <div class="absolute top-0 z-[2] flex justify-center items-center gap-4 w-full py-4 backdrop-blur-[2px]">
-        <h2 class="text-center text-lg">当前对话</h2>
+        <h2 @click="pushTemplateCard" class="text-center text-lg">当前对话</h2>
       </div>
       <div ref="messageScrollRef" class="min-h-[200px] flex-1 px-8 overflow-hidden">
         <MessageList id="agentMessageList" class="pt-16 pb-28" :agentMessageList="agentMessageList"
@@ -27,12 +26,10 @@
       </div>
     </div>
     <div ref="templateCardRef" class="flex flex-1 gap-4 text-white">
-      <!-- 单一容器，使用 grid 布局 -->
-      <div v-auto-animate class="grid grid-cols-1 grid-rows-4 gap-4 size-full sm:grid-cols-2 portrait:grid-rows-2">
-        <div v-for="(card, index) in allCards" :key="card.id" :class="[
-          'rounded-2xl bg-white/25 p-8 transition-all duration-300',
-        ]" :style="getCardGridStyle(card, index)">
-          <h2 class="pb-2 font-bold text-lg">{{ card.title }}</h2>
+      <div v-auto-animate v-for="rows in templateRows" :key="rows.row" class="w-[50%] flex flex-col gap-4">
+        <div v-for="(card, index) in rows.cards" :key="`${rows.row}-${card.id}`"
+          :class="`h-[${templateSize[card.size]}%]`" class="rounded-2xl bg-white/25 p-8 transition-all duration-300">
+          <h2>{{ rows.row }}-{{ index + 1 }}</h2>
           <component :is='card.component' v-bind="card.componentProps"></component>
         </div>
       </div>
@@ -43,9 +40,8 @@
     </div>
   </div>
 </template>
-
 <script lang="ts" setup>
-import { ref, markRaw, onMounted, watchEffect, reactive, watch, computed, type Component } from 'vue'
+import { ref, markRaw, onMounted, watchEffect, reactive, watch, type Component } from 'vue'
 import Examination_0 from '@/assets/image/examination_0.png'
 import Temperature_0 from '@/assets/image/temperature_0.png'
 import Emergency_number_0 from '@/assets/image/emergency_number_0.png'
@@ -56,6 +52,8 @@ import Navigation_1 from '@/assets/image/navigation_1.png'
 import Phone_1 from '@/assets/image/phone_1.png'
 import Component_1 from '@/assets/image/component.png'
 import Car from '@/assets/image/car.png'
+// import Weathe from '@/assets/image/weathe.png'
+// import Music from '@/assets/image/music.png'
 // 工具
 import { sendIntent, socketState } from '@/utils/AIOSService'
 import { getTimeGreeting } from '@/utils'
@@ -63,17 +61,14 @@ import autoAnimate from "@formkit/auto-animate"
 // 组件
 import MessageList from '../home/model/messageList.vue'
 import Photo from './template/photo.vue'
-// import Navigation from './template/navigation.vue'
-import Music from './template/music.vue'
-import Weather from './template/weather.vue'
-import ShopCom from './template/shop.vue'
-import ProductCom from './template/product.vue'
+import Navigation from './template/navigation.vue'
+// import Sonic from '@/assets/svg/sonic.svg'
 import Microphone from '@/assets/svg/microphone.svg'
 import type { Hardware, Product, Shop, MessageText } from '../home/types'
-import { TaskType, IntentType, ProviderType, MessageType, ShowRightType } from '../home/enum'
+import { TaskType, IntentType, ProviderType, MessageType } from '../home/enum'
 import router from '@/router'
 // 逻辑
-import { useMessageHandler, useBScroll, useScreenOrientation, useAudioConversion } from '../home/composables/index'
+import { useMessageHandler, useBScroll } from '../home/composables/index'
 const {
   agentMessageList,
   handleTTSMessage,
@@ -81,17 +76,9 @@ const {
 } = useMessageHandler()
 // bs库滚动处理
 const { messageScrollRef, initBScroll, updateScroll } = useBScroll()
-// 屏幕方向处理
-const { screenOrientation } = useScreenOrientation()
-// 音频转换处理
-const { ttsApi, arsApi } = useAudioConversion()
 // 标记组件为非响应式
-// const photoComponent = markRaw(Photo)
-// const NavigationComponent = markRaw(Navigation)
-const WeatherComponent = markRaw(Weather)
-const MusicComponent = markRaw(Music)
-const ShopComponent = markRaw(ShopCom)
-const ProductComponent = markRaw(ProductCom)
+const photoComponent = markRaw(Photo)
+const NavigationComponent = markRaw(Navigation)
 // 节点
 const recorderBgRef1 = ref<HTMLElement | null>(null)
 const recorderBgRef2 = ref<HTMLElement | null>(null)
@@ -101,7 +88,6 @@ const pressTimer = ref<number | null>(null)
 // 播放控制
 const isAnimating = ref<boolean>(false)
 const isMonitoring = ref<boolean>(true)
-
 // 是否播放
 const isAudioPlay = ref<boolean>(false)
 // 硬件列表
@@ -220,6 +206,17 @@ const handleAgentMessageListChange = () => {
       type: 'user',
       messageType: MessageType.TEXT,
     }
+    /* {
+      text: {
+        logo: 'https://picsum.photos/200/300',
+        productContent: '这是商品内容',
+        productName: '商品名称',
+        productPrice: 100,
+        productId: '1',
+      },
+      type: 'agent',
+      messageType: MessageType.JSON_MENU,
+    }, */
   )
 }
 
@@ -227,8 +224,7 @@ watchEffect(async () => {
   try {
     if (!socketState.message) return
     console.log(JSON.parse(socketState.message))
-    const { type, msg, id, token, nodeTitle, content, srType } = JSON.parse(socketState.message)
-    const tokenId = id + token
+    const { type, msg, id, token, nodeTitle, content } = JSON.parse(socketState.message)
     // 如果消息为空，不执行后面代码
     if (msg === '') return
     // 当接收到不同类型时的处理
@@ -249,15 +245,6 @@ watchEffect(async () => {
             arsViewMessage = productData.shop.productList
 
             templateProduct.splice(0, templateProduct.length, ...productData.shop.productList)
-            pushTemplateCard({
-              id: 1,
-              title: '菜单',
-              size: 'medium',
-              component: ProductComponent,
-              componentProps: {
-                templateProduct
-              },
-            })
             break;
           case MessageType.JSON_RESTAURANT:
             const { data: shopData } = JSON.parse(message)
@@ -268,15 +255,6 @@ watchEffect(async () => {
             arsViewMessage = shopData.shop_list
 
             templateShop.splice(0, templateShop.length, ...shopData.shop_list)
-            pushTemplateCard({
-              id: 2,
-              title: '餐厅',
-              size: 'medium',
-              component: ShopComponent,
-              componentProps: {
-                templateShop
-              },
-            })
             break;
           case MessageType.USER:
             const { userId } = JSON.parse(message)
@@ -315,38 +293,13 @@ watchEffect(async () => {
         handlePlayQueue(id, token, msg, msg, MessageType.TEXT, TaskType.USER)
         break
       case TaskType.SHOWR:
-        switch (srType) {
-          case ShowRightType.IMAGE:
-            const cardFind = allCards.find(item => item.id === tokenId)
-            if (cardFind) {
-              cardFind.componentProps.photoList.push(
-                {
-                  description: "",
-                  image: content,
-                  title: ""
-                }
-              )
-            } else {
-              allCards.push(
-                {
-                  title: nodeTitle,
-                  id: tokenId,
-                  size: 'small',
-                  component: Photo,
-                  componentProps: {
-                    photoList: [
-                      {
-                        description: "",
-                        image: content,
-                        title: ""
-                      }
-                    ]
-                  },
-                }
-              )
-            }
-            break;
-        }
+        templateRows[1].cards[0].componentProps.photoList.push(
+          {
+            description: "",
+            image: content,
+            title: ""
+          }
+        )
         break
     }
     // 图片处理
@@ -360,9 +313,13 @@ watchEffect(async () => {
   }
 })
 // 监听消息列表变化
-watch(agentMessageList, () => updateScroll())
+watch(agentMessageList, () => {
+  updateScroll()
+})
 // 监听图片加载完成
-const handleImageLoad = () => updateScroll()
+const handleImageLoad = () => {
+  updateScroll()
+}
 // 媒体录音
 const mediaRecorder = ref<MediaRecorder | null>(null)
 // 音频上下文
@@ -701,14 +658,131 @@ const stopVolumeDetection = () => {
     volumeDetectionState.volumeDetectionRequestId = null;
   }
 };
+// 语音转文字
+const arsApi = async (blob: Blob): Promise<string> => {
+  const X_NLS_TOKEN = '23f3c7ff8cd646d198d24ea6ec41b0f0'
+  return new Promise<string>((resolve, reject) => {
+    fetch('/asr?appkey=YyCBssRoMTulHOyJ', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/octet-stream',
+        'Content-Length': blob.size.toString(),
+        'X-NLS-Token': X_NLS_TOKEN,
+        Host: 'nls-gateway-cn-shanghai.aliyuncs.com',
+      },
+      body: blob,
+    })
+      .then((res) => res.json())
+      .then(({ result }) => {
+        resolve(result)
+      })
+      .catch((err) => {
+        console.log('asr调用出错', err);
+        reject(err)
+      })
+  })
+}
+//文字转语音
+const ttsApi = (
+  text: string = '今天星期一，天气很好'
+): Promise<{
+  file: string
+  msg: string
+  code: 0
+}> => {
+  return new Promise((resolve) => {
+    fetch(`/tts?text=${text}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then((res) => res.json())
+      .then((res: {
+        file: string
+        msg: string
+        code: 0
+      }) => {
+        resolve(res)
+      })
+      .catch((error) => {
+        console.error('获取音频失败:', error, text)
+        resolve(error)
+      })
+  })
+}
+
+
 type TemplateSize = 'medium' | 'small' | 'mini'
 interface TemplateCard {
   size: TemplateSize
+  height: number
   component: string | Component
   id: number
-  title: string
   componentProps?: any
 }
+interface TemplateRows {
+  cards: TemplateCard[]
+  row: number
+}
+const templateSize: Record<TemplateSize, number> = {
+  mini: 25,
+  small: 50,
+  medium: 100,
+}
+const templateRows = reactive<TemplateRows[]>([
+  {
+    cards: [
+      {
+        id: Date.now() + Math.random(), // 添加唯一ID
+        size: 'medium',
+        height: templateSize['medium'],
+        component: NavigationComponent,
+      }
+    ],
+    row: 1
+  },
+  {
+    cards: [
+      {
+        id: Date.now() + Math.random(), // 添加唯一ID
+        size: 'small',
+        height: templateSize['small'],
+        component: photoComponent,
+        componentProps: {
+          photoList: [
+            {
+              image: 'https://swiperjs.com/demos/images/nature-1.jpg',
+              title: '山脉风光',
+              description: '壮丽的自然山脉景观'
+            },
+            {
+              image: 'https://swiperjs.com/demos/images/nature-2.jpg',
+              title: '森林晨曦',
+              description: '晨光中的静谧森林'
+            },
+            {
+              image: 'https://swiperjs.com/demos/images/nature-3.jpg',
+              title: '自然美景',
+              description: '广阔的自然风光'
+            },
+            {
+              image: 'https://swiperjs.com/demos/images/nature-4.jpg',
+              title: '迷雾森林',
+              description: '神秘而美丽的迷雾森林'
+            },
+            {
+              image: 'https://swiperjs.com/demos/images/nature-5.jpg',
+              title: '日落湖景',
+              description: '宁静的湖泊与日落'
+            }
+          ]
+        }
+      }
+    ],
+    row: 2
+  }
+])
 const templateShop = reactive<Shop[]>([
   /* {
     shopName: '商品1',
@@ -773,142 +847,73 @@ const templateProduct = reactive<Product[]>([
     productPrice: 10
   }, */
 ])
-// 今天是2025-10-30，星期五，晴天，温度25度，湿度60%
 const templateWeather = ref('')
-const templateSize: Record<TemplateSize, number> = {
-  mini: 1,
-  small: 2,
-  medium: 4,
-}
-const allCards = reactive<TemplateCard[]>([
-  /* {
-    id: Date.now() + Math.random(),
-    title: '导航',
-    size: 'medium',
-    component: NavigationComponent,
-  }, */
-  {
-    id: Date.now() + Math.random(),
-    title: '天气',
-    size: 'medium',
-    component: WeatherComponent,
-    componentProps: {
-      templateWeather,
-    },
-  },
-  {
-    id: Date.now() + Math.random(),
-    title: '音乐',
-    size: 'medium',
-    component: MusicComponent,
-  },
-  /* {
-    id: Date.now() + Math.random(),
-    title: '餐厅',
-    size: 'medium',
-    component: ShopComponent,
-    componentProps: {
-      templateShop,
-    },
-  }, */
-  /* {
-    id: Date.now() + Math.random(),
-    title: '菜单',
-    size: 'medium',
-    component: ProductComponent,
-    componentProps: {
-      templateProduct,
-    },
-  }, */
-])
-const cardRow = screenOrientation.value ? 4 : 4
-// 计算属性，用于确定哪些卡片属于第一列，哪些属于第二列
-const firstColumnCards = computed(() => {
-  const cards: TemplateCard[] = []
-  let totalHeight = 0
-
-  for (const card of allCards) {
-    const cardHeight = templateSize[card.size]
-    if (totalHeight + cardHeight <= cardRow) {
-      cards.push(card)
-      totalHeight += cardHeight
-    } else {
-      break
-    }
-  }
-  return cards
-})
-
-const secondColumnCards = computed(() => {
-  return allCards.slice(firstColumnCards.value.length)
-})
-
-// 获取卡片的网格样式
-const getCardGridStyle = (card: TemplateCard, index: number) => {
-  const isFirstColumn = index < firstColumnCards.value.length
-  const cardHeight = templateSize[card.size]
-
-  if (isFirstColumn) {
-    // 计算在第一列中的位置
-    let startRow = 1
-    for (let i = 0; i < index; i++) {
-      startRow += templateSize[allCards[i].size]
-    }
-    return {
-      'grid-column': '1',
-      'grid-row': `${startRow} / span ${cardHeight}`
-    }
-  } else {
-    // 计算在第二列中的位置
-    const secondColumnIndex = index - firstColumnCards.value.length
-    let startRow = 1
-    for (let i = 0; i < secondColumnIndex; i++) {
-      const cardIndex = firstColumnCards.value.length + i
-      startRow += templateSize[allCards[cardIndex].size]
-    }
-    return {
-      'grid-column': '2',
-      'grid-row': `${startRow} / span ${cardHeight}`
-    }
-  }
-}
-
-// 添加卡片
-const pushTemplateCard = (newCard: TemplateCard) => {
-  /* const randomNum = Math.floor(Math.random() * 3) + 1
+/**
+ * 推送模板卡片
+ * @param {TemplateCard} templateCard
+ */
+const pushTemplateCard = () => {
+  /* templateRows[1].cards[0].componentProps.photoList.push({
+    description: "",
+    image: "https://swiperjs.com/demos/images/nature-1.jpg",
+    title: ""
+  }) */
+  // 为每个卡片添加唯一ID
+  const randomNum = Math.floor(Math.random() * 3) + 1
+  const [row_1, row_2] = templateRows
   const size = ['mini', 'small', 'medium'][randomNum - 1] as 'mini' | 'small' | 'medium'
-  const newCard: TemplateCard = {
-    id: Date.now() + Math.random(),
-    title: '',
-    size: screenOrientation.value ? size : 'small',
+  const data = {
+    id: Date.now() + Math.random(), // 添加唯一ID
+    size,
+    height: templateSize[size],
     component: '',
-  } */
-  // 添加到所有卡片的开头
-  allCards.unshift(newCard)
-  // 处理溢出 - 移除超出容量的卡片
-  while (needToRemoveCard()) {
-    allCards.pop()
+  }
+  console.log(data);
+  row_1.cards.unshift(data)
+  // 处理第一行溢出：将多余的卡片移到第二行
+  let rowHeight_1 = row_1.cards.reduce((sum, card) => sum + templateSize[card.size as keyof typeof templateSize], 0)
+  while (rowHeight_1 > 100 && row_1.cards.length > 1) {
+    const movedCard = row_1.cards.pop() // 从末尾移除
+    if (movedCard) {
+      row_2.cards.unshift(movedCard)
+      rowHeight_1 -= templateSize[movedCard.size as keyof typeof templateSize]
+    }
+  }
+
+  // 处理第二行溢出：删除超出高度限制的卡片
+  let rowHeight_2 = row_2.cards.reduce((sum, card) => sum + templateSize[card.size as keyof typeof templateSize], 0)
+  while (rowHeight_2 > 100 && row_2.cards.length > 0) {
+    row_2.cards.pop() // 从末尾移除
+    rowHeight_2 = row_2.cards.reduce((sum, card) => sum + templateSize[card.size as keyof typeof templateSize], 0)
   }
 }
-
-// 判断是否需要移除卡片
-const needToRemoveCard = () => {
-  // 检查两列总高度是否超过限制
-  const firstColumnHeight = firstColumnCards.value.reduce((sum, card) => sum + templateSize[card.size], 0)
-  const secondColumnHeight = secondColumnCards.value.reduce((sum, card) => sum + templateSize[card.size], 0)
-  console.log(firstColumnHeight, secondColumnHeight, cardRow);
-  if (!screenOrientation.value && (secondColumnHeight || firstColumnHeight >= cardRow)) {
-    console.log('超出限制');
-    return true
-  }
-  return firstColumnHeight > cardRow || secondColumnHeight > cardRow
-}
-
 </script>
 <style lang="scss" scoped>
 .dashboard {
   background-image: url('@/assets/image/banner.jpg');
   background-size: cover;
+}
+
+.template-card-enter-active,
+.template-card-leave-active,
+.template-card-move {
+  transition: all 0.5s ease;
+}
+
+.template-card-enter-from {
+  opacity: 0;
+  transform: translateY(-30px);
+}
+
+.template-card-leave-to {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.template-card-leave-active {
+  position: absolute;
+  width: calc(100% - 4rem);
+  /* 考虑 padding */
 }
 
 .hidden-scroll {

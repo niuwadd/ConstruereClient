@@ -1,9 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 // import Home from '@/views/home/index.vue'
-import HomeBase from '@/views/home/home-base/index.vue'
+import HomeBase from '@/views/home/index.vue'
 // import HomeSpecialty from '@/views/home/home-specialty/index.vue'
-console.log('打包', import.meta.env)
 
 const routes: RouteRecordRaw[] = [
   {
@@ -36,7 +35,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/home-base',
     name: 'home-base',
-    component: () => import('@/views/home/index.vue'),
+    component: () => import('@/views/home/home-base/index.vue'),
     meta: { transition: 'home-base' },
   },
   {

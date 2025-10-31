@@ -74,10 +74,24 @@ export default function useMessageHandler() {
       agentMessageList.push({ text: message, type: 'agent', messageType })
     }
   }
-
+  const handleUserMessage = (message: string) => {
+    console.log('message------------', message)
+    agentMessageList.push(
+      {
+        text: message,
+        type: 'user',
+      },
+      {
+        text: '',
+        type: 'agent',
+        loading: true,
+      }
+    )
+  }
   return {
     agentMessageList,
     handleTTSMessage,
     handleDialogueList,
+    handleUserMessage
   }
 }
