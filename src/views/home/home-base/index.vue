@@ -31,7 +31,7 @@
               </Transition>
             </div>
             <div class="text-xl font-bold font-sans text-gray-600 relative z-[2]">
-              <p>您好，</p>
+              <p>{{ $t('message.hello') }}，</p>
               <p>{{ currentAgent?.title_1 }}</p>
             </div>
             <p class="text-sm font-bold text-gray-500 relative z-[2]">{{ currentAgent?.description }}</p>
@@ -41,7 +41,8 @@
                   <div class="size-full rounded-2xl overflow-hidden bg-[#fbfbfb]">
                     <img class="" :src="item.data ? item.data.value : item.icon" alt=""></img>
                   </div>
-                  <p class="absolute bottom-2 left-[50%] transform-[translateX(-50%)] text-sm font-bold text-gray-500">
+                  <p
+                    class="absolute bottom-2 left-[50%] transform-[translateX(-50%)] text-sm font-bold text-gray-500 text-wrap text-center">
                     {{ item.name }}</p>
                 </div>
               </div>
@@ -62,7 +63,7 @@
       <div v-if="screenOrientation"
         class="flex flex-col flex-1 min-w-[50%] rounded-l-4xl bg-white/25 p-8 text-2xl font-bold relative">
         <div class="absolute top-0 z-[2] flex justify-center items-center gap-4 w-full py-4 backdrop-blur-[2px]">
-          <h2 @click="updateScroll" class="text-center text-lg">当前对话</h2>
+          <h2 @click="updateScroll" class="text-center text-lg">{{ $t('message.chatTitle') }}</h2>
         </div>
         <div ref="messageScrollRef" class="min-h-[200px] flex-1 overflow-hidden">
           <MessageList id="agentMessageList" class="pt-8 pb-24" :agentMessageList="agentMessageList"
@@ -124,6 +125,7 @@ import Car from '@/assets/image/car.png'
 // 工具
 import { sendIntent, socketState } from '@/utils/AIOSService'
 import { getTimeGreeting } from '@/utils'
+import { useI18n } from 'vue-i18n'
 // 组件
 import MessageList from '../model/messageList.vue'
 import Microphone from '@/assets/svg/microphone.svg'
@@ -133,16 +135,18 @@ import { TaskType, IntentType, ProviderType, MessageType, AppName } from '../enu
 import router from '@/router'
 // 逻辑
 import { useMessageHandler, useBScroll, useAgent, useScreenOrientation, useAudioConversion } from '../composables/index'
+const { t } = useI18n()
+// Agent选择处理
+const { agentList, currentAgent, handleAgent } = useAgent()
+// bs库滚动处理
+const { portraitScrollRef, messageScrollRef, hardwareScrollRef, initBScroll, resetScroll, updateScroll } = useBScroll()
 // 消息处理
+const createMessageHandler = useMessageHandler()
 const {
   agentMessageList,
   handleTTSMessage,
   handleDialogueList
-} = useMessageHandler()
-// bs库滚动处理
-const { portraitScrollRef, messageScrollRef, hardwareScrollRef, initBScroll, resetScroll, updateScroll } = useBScroll()
-// Agent选择处理
-const { agentList, currentAgent, handleAgent } = useAgent()
+} = createMessageHandler(t)
 // 屏幕方向处理
 const { screenOrientation, orientationchange } = useScreenOrientation()
 // 音频转换处理
@@ -183,23 +187,23 @@ const hardwareList = reactive<Hardware[]>([
 
 const hardwareDataList = reactive<Hardware[]>([
   {
-    name: '摄像头',
+    name: t('hardware.examination'),
     icon: Examination_0,
   },
   {
-    name: '运动手环',
+    name: t('hardware.fitnessBand'),
     icon: Fitness_band_0,
   },
   {
-    name: '测量体温',
+    name: t('hardware.temperature'),
     icon: Temperature_0,
   },
   {
-    name: '打急救电话',
+    name: t('hardware.emergencyNumber'),
     icon: Emergency_number_0,
   },
   {
-    name: '导航',
+    name: t('hardware.hospital'),
     icon: Hospital_0,
   }
 ])
@@ -289,14 +293,15 @@ watchEffect(async () => {
             break;
           case MessageType.USER:
             const { userId } = JSON.parse(message)
-            arsMessage = `${getTimeGreeting()},${userId}`
-            arsViewMessage = `${getTimeGreeting()},${userId}`
+            arsMessage = `${getTimeGreeting(t)},${userId}`
+            arsViewMessage = `${getTimeGreeting(t)},${userId}`
+            console.log(arsMessage);
             break;
           case MessageType.WEATHER:
             const { result: weatherData } = JSON.parse(message)
             console.log('天气相关', weatherData);
-            arsMessage = `今天是${weatherData.date}，${weatherData.week}，${weatherData.city}天气${weatherData.weather}`
-            arsViewMessage = `今天是${weatherData.date}，${weatherData.week}，${weatherData.city}天气${weatherData.weather}`
+            arsMessage = `${t('message.today')}${weatherData.date}，${weatherData.week}，${weatherData.city}${t('message.weather')}${weatherData.weather}`
+            arsViewMessage = `${t('message.today')}${weatherData.date}，${weatherData.week}，${weatherData.city}${t('message.weather')}${weatherData.weather}`
             break;
           case MessageType.MARKDOWN:
             const regex = /notify```\s*([\s\S]*?)```/

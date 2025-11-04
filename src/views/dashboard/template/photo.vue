@@ -29,6 +29,7 @@ const props = defineProps<{
 }>()
 
 const slides = ref(props.photoList)
+console.log(slides.value);
 const currentSlide = ref(0)
 const swiperInstance = ref<SwiperType | null>(null)
 

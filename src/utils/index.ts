@@ -52,16 +52,16 @@ export function isValidJSON(str: string) {
  * 根据当前时间返回相应的问候语
  * @returns {string} 问候语：早上好/中午好/下午好/晚上好
  */
-export function getTimeGreeting() {
+export function getTimeGreeting(t: (key: string) => string) {
     const hour = new Date().getHours();
     
     if (hour >= 6 && hour < 12) {
-        return "早上好";
+        return t('message.goodMorning');
     } else if (hour >= 12 && hour < 14) {
-        return "中午好";
+        return  t('message.goodNoon');
     } else if (hour >= 14 && hour < 18) {
-        return "下午好";
+        return t('message.goodAfternoon');
     } else {
-        return "晚上好";
+        return t('message.goodEvening');
     }
 }

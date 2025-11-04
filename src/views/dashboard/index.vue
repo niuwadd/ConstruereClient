@@ -1,9 +1,10 @@
 <template>
+
   <div class="dashboard size-full flex gap-4 p-10 portrait:flex-col">
-    <div
+    <div :class="hiddenCard ? '' : 'flex-1'"
       class="flex flex-col w-[400px] rounded-2xl bg-white/25 text-2xl font-bold relative portrait:w-full portrait:h-[400px]">
       <div class="absolute top-0 z-[2] flex justify-center items-center gap-4 w-full py-4 backdrop-blur-[2px]">
-        <h2 class="text-center text-lg">当前对话</h2>
+        <h2 class="text-center text-lg">{{ $t('message.chatTitle') }}</h2>
       </div>
       <div ref="messageScrollRef" class="min-h-[200px] flex-1 px-8 overflow-hidden">
         <MessageList id="agentMessageList" class="pt-16 pb-28" :agentMessageList="agentMessageList"
@@ -26,7 +27,7 @@
         </div>
       </div>
     </div>
-    <div ref="templateCardRef" class="flex flex-1 gap-4 text-white">
+    <div v-show="hiddenCard" ref="templateCardRef" class="flex flex-1 gap-4 text-white">
       <!-- 单一容器，使用 grid 布局 -->
       <div v-auto-animate class="grid grid-cols-1 grid-rows-4 gap-4 size-full sm:grid-cols-2 portrait:grid-rows-2">
         <div v-for="(card, index) in allCards" :key="card.id" :class="[
@@ -39,7 +40,7 @@
     </div>
     <audio ref="audioPlayRef" @ended="isAudioPlay = false" class="hidden" controls></audio>
     <div @click="router.push('/')" class="absolute top-2 right-2 rounded-3xl text-white text-sm ">
-      智能体模式
+      {{ $t('mode.agentMode') }}
     </div>
   </div>
 </template>
@@ -60,12 +61,13 @@ import Car from '@/assets/image/car.png'
 import { sendIntent, socketState } from '@/utils/AIOSService'
 import { getTimeGreeting } from '@/utils'
 import autoAnimate from "@formkit/auto-animate"
+import { useI18n } from 'vue-i18n'
 // 组件
 import MessageList from '../home/model/messageList.vue'
 import Photo from './template/photo.vue'
 // import Navigation from './template/navigation.vue'
-import Music from './template/music.vue'
-import Weather from './template/weather.vue'
+// import Music from './template/music.vue'
+// import Weather from './template/weather.vue'
 import ShopCom from './template/shop.vue'
 import ProductCom from './template/product.vue'
 import Microphone from '@/assets/svg/microphone.svg'
@@ -74,22 +76,24 @@ import { TaskType, IntentType, ProviderType, MessageType, ShowRightType } from '
 import router from '@/router'
 // 逻辑
 import { useMessageHandler, useBScroll, useScreenOrientation, useAudioConversion } from '../home/composables/index'
+const { t } = useI18n()
+const createMessageHandler = useMessageHandler()
 const {
   agentMessageList,
   handleTTSMessage,
   handleDialogueList
-} = useMessageHandler()
+} = createMessageHandler(t)
 // bs库滚动处理
 const { messageScrollRef, initBScroll, updateScroll } = useBScroll()
 // 屏幕方向处理
-const { screenOrientation } = useScreenOrientation()
+const { screenOrientation, mlScreen } = useScreenOrientation()
 // 音频转换处理
 const { ttsApi, arsApi } = useAudioConversion()
 // 标记组件为非响应式
 // const photoComponent = markRaw(Photo)
 // const NavigationComponent = markRaw(Navigation)
-const WeatherComponent = markRaw(Weather)
-const MusicComponent = markRaw(Music)
+// const WeatherComponent = markRaw(Weather)
+// const MusicComponent = markRaw(Music)
 const ShopComponent = markRaw(ShopCom)
 const ProductComponent = markRaw(ProductCom)
 // 节点
@@ -251,7 +255,7 @@ watchEffect(async () => {
             templateProduct.splice(0, templateProduct.length, ...productData.shop.productList)
             pushTemplateCard({
               id: 1,
-              title: '菜单',
+              title: t('card.product'),
               size: 'medium',
               component: ProductComponent,
               componentProps: {
@@ -270,7 +274,7 @@ watchEffect(async () => {
             templateShop.splice(0, templateShop.length, ...shopData.shop_list)
             pushTemplateCard({
               id: 2,
-              title: '餐厅',
+              title: t('card.shop'),
               size: 'medium',
               component: ShopComponent,
               componentProps: {
@@ -280,8 +284,8 @@ watchEffect(async () => {
             break;
           case MessageType.USER:
             const { userId } = JSON.parse(message)
-            arsMessage = `${getTimeGreeting()},${userId}`
-            arsViewMessage = `${getTimeGreeting()},${userId}`
+            arsMessage = `${getTimeGreeting(t)},${userId}`
+            arsViewMessage = `${getTimeGreeting(t)},${userId}`
             break;
           case MessageType.WEATHER:
             const { result: weatherData } = JSON.parse(message)
@@ -783,25 +787,44 @@ const templateSize: Record<TemplateSize, number> = {
 const allCards = reactive<TemplateCard[]>([
   /* {
     id: Date.now() + Math.random(),
-    title: '导航',
+    title: t('card.navigation'),
     size: 'medium',
     component: NavigationComponent,
   }, */
-  {
+  /* {
     id: Date.now() + Math.random(),
-    title: '天气',
+    title: t('card.photo'),
+    size: 'small',
+    component: photoComponent,
+    componentProps: {
+      photoList: [
+        {
+          image: 'https://picsum.photos/300/200?random=1',
+        },
+        {
+          image: 'https://picsum.photos/300/200?random=2',
+        },
+        {
+          image: 'https://picsum.photos/300/200?random=3',
+        }
+      ]
+    },
+  }, */
+  /* {
+    id: Date.now() + Math.random(),
+    title: t('card.weather'),
     size: 'medium',
     component: WeatherComponent,
     componentProps: {
       templateWeather,
     },
-  },
-  {
+  }, */
+  /* {
     id: Date.now() + Math.random(),
-    title: '音乐',
+    title: t('card.muisc'),
     size: 'medium',
     component: MusicComponent,
-  },
+  }, */
   /* {
     id: Date.now() + Math.random(),
     title: '餐厅',
@@ -820,6 +843,30 @@ const allCards = reactive<TemplateCard[]>([
       templateProduct,
     },
   }, */
+  {
+    id: Date.now() + Math.random(),
+    title: '1-1',
+    size: 'medium',
+    component: ''
+  },
+  {
+    id: Date.now() + Math.random(),
+    title: '2-1',
+    size: 'small',
+    component: ''
+  },
+  {
+    id: Date.now() + Math.random(),
+    title: '2-2',
+    size: 'mini',
+    component: ''
+  },
+  {
+    id: Date.now() + Math.random(),
+    title: '2-2',
+    size: 'mini',
+    component: ''
+  }
 ])
 const cardRow = screenOrientation.value ? 4 : 4
 // 计算属性，用于确定哪些卡片属于第一列，哪些属于第二列
@@ -896,14 +943,15 @@ const needToRemoveCard = () => {
   // 检查两列总高度是否超过限制
   const firstColumnHeight = firstColumnCards.value.reduce((sum, card) => sum + templateSize[card.size], 0)
   const secondColumnHeight = secondColumnCards.value.reduce((sum, card) => sum + templateSize[card.size], 0)
-  console.log(firstColumnHeight, secondColumnHeight, cardRow);
   if (!screenOrientation.value && (secondColumnHeight || firstColumnHeight >= cardRow)) {
-    console.log('超出限制');
     return true
   }
   return firstColumnHeight > cardRow || secondColumnHeight > cardRow
 }
 
+const hiddenCard = computed(() => {
+  return screenOrientation.value && mlScreen.value ? false : true
+})
 </script>
 <style lang="scss" scoped>
 .dashboard {

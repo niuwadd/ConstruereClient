@@ -35,6 +35,7 @@ export const IntentType = {
   ASR: 'asr',
   USERANSWER: 'userAnswer',
   GREETINGS: 'greetings',
+  LANGUAGE: 'language',
 } as const
 export type IntentType = (typeof IntentType)[keyof typeof IntentType]
 

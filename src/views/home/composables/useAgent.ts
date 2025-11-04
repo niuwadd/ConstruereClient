@@ -4,53 +4,56 @@ import type { AnimationMixer, AnimationAction, Group } from 'three'
 import { FBXLoader, OrbitControls } from 'three-stdlib'
 import type { Agent } from '../types'
 import { AppName } from '../enum'
+import { useI18n } from 'vue-i18n'
 import Agent_default from '@/assets/image/agent_default.png'
 import Agent_medical from '@/assets/image/agent_medical.png'
 import Agent_repair from '@/assets/image/agent_repair.png'
 import Agent_takeout from '@/assets/image/agent_takeout.png'
 import Agent_chat from '@/assets/image/agent_chat.png'
 export default function useAgent() {
+  const { t } = useI18n()
   const canvasRef = ref<HTMLElement | null>(null)
   const agentList: Agent[] = [
     {
       name: '智能体',
-      title: '智能体',
-      title_1: '我是您的智能体',
-      description: 'Construere：唤醒硬件，智联万物',
+      title: t('agent.default.title'),
+      title_1: t('agent.default.title_1'),
+      description: t('agent.default.description'),
       icon: Agent_default,
       isActive: true,
     },
     {
       name: AppName.CHAT,
-      title: '社交助手智能体',
-      title_1: '我是您的社交助手',
-      description: '我可以为你做',
+      title: t('agent.chat.title'),
+      title_1: t('agent.chat.title_1'),
+      description: t('agent.medical.description'),
       // description: '通过摄像头进行拍照，通过AI分析照片，并给出发生到的朋友圈文案',
       icon: Agent_chat,
       isActive: false,
     },
     {
-      name: AppName.MEDICAL,
-      title: '医疗助理智能体',
-      title_1: '我是您的医疗助理',
-      description: '我可以为你做',
+      // name: AppName.MEDICAL,
+      name: t('agent.medical.appName'),
+      title: t('agent.medical.title'),
+      title_1: t('agent.medical.title_1'),
+      description: t('agent.medical.description'),
       icon: Agent_medical,
       isActive: false,
     },
     {
       name: AppName.TAKEOUT,
-      title: '点餐助手智能体',
-      title_1: '我是您的点餐助手',
+      title: t('agent.takeout.title'),
+      title_1: t('agent.takeout.title_1'),
       // description: '通过语音交流进行点餐，通过AI分析点餐记录，并给出点餐建议',
-      description: '我可以为你做',
+      description: t('agent.medical.description'),
       icon: Agent_takeout,
       isActive: false,
     },
     {
       name: AppName.REPAIR,
-      title: '车辆健康智能体',
-      title_1: '我是您的车辆健康管家',
-      description: '我可以为你做',
+      title: t('agent.repair.title'),
+      title_1: t('agent.repair.title_1'),
+      description: t('agent.medical.description'),
       icon: Agent_repair,
       isActive: false,
     },

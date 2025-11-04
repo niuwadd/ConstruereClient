@@ -2,7 +2,8 @@ import { ref, reactive } from 'vue'
 import { sendIntent } from '@/utils/AIOSService'
 import { IntentType } from '../enum'
 import { useMessageHandler, useAudioConversion } from '../composables/index'
-const { handleUserMessage } = useMessageHandler()
+const createMessageHandler = useMessageHandler()
+const { handleUserMessage } = createMessageHandler()
 const { arsApi } = useAudioConversion()
 export default function useRecorder() {
   const audioPlayRef = ref<HTMLAudioElement | null>(null)

@@ -8,22 +8,22 @@
           </li>
         </ul>
       </div>
-      <img v-show="!isOpen" @click="openModal" class="bot-img w-[480px] portrait:w-[80%]" :src="currentAgent?.icon"
-        alt=""></img>
+      <img v-show="!isOpen" @click="openModal" class="bot-img w-[480px] portrait:w-[80%]" :src="blink" alt="">
+      </img>
       <transition name="agentImg">
         <img v-show="isOpen" class="bot-img w-[180px]" :src="currentAgent?.icon">
       </transition>
     </div>
     <div @click="router.push('/dashboard')"
       class="absolute top-4 right-4 p-3 rounded-3xl text-gray-600 bg-white/30 backdrop-blur-2xl">
-      AIOS模式
+      {{ $t('mode.aiosMode') }}
     </div>
-    <div class="absolute top-4 right-30 text-right">
+    <div class="absolute top-4 right-32 text-right">
       <Menu as="div" class="relative inline-block text-left">
         <div>
           <MenuButton
-            class="inline-flex w-full justify-center rounded-md bg-black/20 px-4 py-3 text-sm font-medium text-white hover:bg-black/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75">
-            Options
+            class="inline-flex w-full justify-center rounded-md text-sm font-medium text-white hover:bg-black/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75">
+            <Translation class="size-[40px] fill-gray-600" />
           </MenuButton>
         </div>
         <transition enter-active-class="transition duration-100 ease-out"
@@ -35,7 +35,7 @@
             <div class="px-1 py-1">
               <MenuItem v-slot="{ active }">
               <button :class="[
-                active ? 'bg-violet-500 text-white' : 'text-gray-900',
+                active ? 'bg-linear-to-r from-[#6886fc] to-[#6958fb] text-white' : 'text-gray-900',
                 'group flex w-full items-center rounded-md px-2 py-2 text-sm',
               ]" @click="changeLanguage('zh-CN')">
                 简体中文
@@ -43,7 +43,7 @@
               </MenuItem>
               <MenuItem v-slot="{ active }">
               <button :class="[
-                active ? 'bg-violet-500 text-white' : 'text-gray-900',
+                active ? 'bg-linear-to-r from-[#6886fc] to-[#6958fb] text-white' : 'text-gray-900',
                 'group flex w-full items-center rounded-md px-2 py-2 text-sm',
               ]" @click="changeLanguage('en-US')">
                 English
@@ -62,6 +62,10 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 import { useAgent } from './composables/index'
+import { IntentType } from '@/views/home/enum'
+import { sendIntent } from '@/utils/AIOSService'
+import Translation from '@/assets/svg/translation.svg'
+import blink from '@/assets/image/Blink.gif'
 
 const router = useRouter()
 const isOpen = ref(false)
@@ -70,6 +74,8 @@ const { agentList, currentAgent } = useAgent()
 
 const changeLanguage = (lang: string) => {
   locale.value = lang // 切换语言
+  console.log(lang === 'zh-CN' ? 'cn' : 'en');
+  sendIntent(IntentType.LANGUAGE, { language: lang === 'zh-CN' ? 'cn' : 'en' })
 }
 const openModal = () => {
   router.push('/home-base')

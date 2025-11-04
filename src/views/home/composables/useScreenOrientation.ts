@@ -22,11 +22,13 @@ export default function useScreenOrientation() {
       mlScreen.value = screen.width < 768
       lgScreen.value = screen.width < 1024
       xlScreen.value = screen.width < 1280
+      console.log(screenOrientation.value);
     })
   }
   orientationchange()
   return {
     screenOrientation,
+    mlScreen,
     orientationchange,
   }
 }
