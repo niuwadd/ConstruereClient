@@ -273,6 +273,7 @@ watchEffect(async () => {
         let arsMessage = ''
         // 显示的消息文本
         let arsViewMessage = ''
+        console.log('成功---------', handleTTSMessage(msg));
         const { type, message } = handleTTSMessage(msg)
         switch (type) {
           case MessageType.JSON_MENU:
@@ -291,6 +292,10 @@ watchEffect(async () => {
             }).join('。')
             arsViewMessage = shopData.shop_list
             break;
+          case MessageType.JSON_RESTAURANT_X:
+            console.log('餐厅X', message);
+            console.log('餐厅', JSON.parse(message));
+            break
           case MessageType.USER:
             const { userId } = JSON.parse(message)
             arsMessage = `${getTimeGreeting(t)},${userId}`

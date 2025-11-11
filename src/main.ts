@@ -57,7 +57,7 @@ const messages = {
     },
     card: {
       weather: '天气',
-      muisc: '音乐',
+      music: '音乐',
       product: '菜单',
       shop: '餐厅',
       navigation: '导航',
@@ -116,7 +116,7 @@ const messages = {
     },
     card: {
       weather: 'Weather',
-      muisc: 'Music',
+      music: 'Music',
       product: 'Menu',
       shop: 'Restaurant',
       navigation: 'Navigation',

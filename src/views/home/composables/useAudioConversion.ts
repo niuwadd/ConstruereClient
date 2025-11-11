@@ -32,11 +32,14 @@ export default function useAudioConversion() {
     code: 0
   }> => {
     return new Promise((resolve) => {
-      fetch(`/tts?text=${text}`, {
-        method: 'GET',
+      fetch(`/tts`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          text: text,
+        }),
       })
         .then((res) => res.json())
         .then((res: { file: string; msg: string; code: 0 }) => {

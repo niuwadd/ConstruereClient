@@ -24,10 +24,16 @@ export interface Shop {
   shopDescription: string
   shopId?: string
 }
+export interface Restaurant {
+  address: string
+  logo: string
+  storeName: string
+  storeId: string
+}
 type UnionArray<T, U> = Array<T | U>
-export type MessageText = string | UnionArray<Product, Shop>
+export type MessageText = string | UnionArray<Product, Shop, Restaurant>
 export interface Message {
-  text: string | UnionArray<Product, Shop>
+  text: string | UnionArray<Product, Shop, MessageText>
   type: 'user' | 'agent'
   icon?: string
   token?: string

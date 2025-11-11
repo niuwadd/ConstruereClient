@@ -57,6 +57,7 @@
   </div>
 </template>
 <script lang="ts" setup>
+
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -78,6 +79,7 @@ const changeLanguage = (lang: string) => {
   sendIntent(IntentType.LANGUAGE, { language: lang === 'zh-CN' ? 'cn' : 'en' })
 }
 const openModal = () => {
+  // router.push('/home-specialty')
   router.push('/home-base')
 }
 

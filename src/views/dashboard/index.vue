@@ -2,7 +2,7 @@
 
   <div class="dashboard size-full flex gap-4 p-10 portrait:flex-col">
     <div :class="hiddenCard ? '' : 'flex-1'"
-      class="flex flex-col w-[400px] rounded-2xl bg-white/25 text-2xl font-bold relative portrait:w-full portrait:h-[400px]">
+      class="flex flex-col w-[340px] rounded-2xl bg-white/25 text-2xl font-bold relative portrait:w-full portrait:h-[400px]">
       <div class="absolute top-0 z-[2] flex justify-center items-center gap-4 w-full py-4 backdrop-blur-[2px]">
         <h2 class="text-center text-lg">{{ $t('message.chatTitle') }}</h2>
       </div>
@@ -29,11 +29,11 @@
     </div>
     <div v-show="hiddenCard" ref="templateCardRef" class="flex flex-1 gap-4 text-white">
       <!-- 单一容器，使用 grid 布局 -->
-      <div v-auto-animate class="grid grid-cols-1 grid-rows-4 gap-4 size-full sm:grid-cols-2 portrait:grid-rows-2">
+      <div v-auto-animate class="grid grid-cols-1 grid-rows-4 gap-4 size-full md:grid-cols-2 portrait:grid-rows-2">
         <div v-for="(card, index) in allCards" :key="card.id" :class="[
-          'rounded-2xl bg-white/25 p-8 transition-all duration-300',
+          'rounded-2xl bg-white/25 p-4 transition-all duration-300',
         ]" :style="getCardGridStyle(card, index)">
-          <h2 class="pb-2 font-bold text-lg">{{ card.title }}</h2>
+          <!-- <h2 class="pb-2 font-bold text-lg">{{ card.title }}</h2> -->
           <component :is='card.component' v-bind="card.componentProps"></component>
         </div>
       </div>
@@ -64,15 +64,16 @@ import autoAnimate from "@formkit/auto-animate"
 import { useI18n } from 'vue-i18n'
 // 组件
 import MessageList from '../home/model/messageList.vue'
+import Restaurants from './template/restaurants.vue'
 import Photo from './template/photo.vue'
-// import Navigation from './template/navigation.vue'
-// import Music from './template/music.vue'
+import Navigation from './template/navigation.vue'
+import Music from './template/music.vue'
 // import Weather from './template/weather.vue'
 import ShopCom from './template/shop.vue'
 import ProductCom from './template/product.vue'
 import Microphone from '@/assets/svg/microphone.svg'
 import type { Hardware, Product, Shop, MessageText } from '../home/types'
-import { TaskType, IntentType, ProviderType, MessageType, ShowRightType } from '../home/enum'
+import { TaskType, IntentType, ProviderType, MessageType, ShowRightType, modeType } from '../home/enum'
 import router from '@/router'
 // 逻辑
 import { useMessageHandler, useBScroll, useScreenOrientation, useAudioConversion } from '../home/composables/index'
@@ -91,11 +92,12 @@ const { screenOrientation, mlScreen } = useScreenOrientation()
 const { ttsApi, arsApi } = useAudioConversion()
 // 标记组件为非响应式
 // const photoComponent = markRaw(Photo)
-// const NavigationComponent = markRaw(Navigation)
+const NavigationComponent = markRaw(Navigation)
 // const WeatherComponent = markRaw(Weather)
-// const MusicComponent = markRaw(Music)
+const MusicComponent = markRaw(Music)
 const ShopComponent = markRaw(ShopCom)
 const ProductComponent = markRaw(ProductCom)
+const RestaurantsComponent = markRaw(Restaurants)
 // 节点
 const recorderBgRef1 = ref<HTMLElement | null>(null)
 const recorderBgRef2 = ref<HTMLElement | null>(null)
@@ -176,6 +178,8 @@ onMounted(() => {
   initBScroll()
   // 发送一个greetings
   sendIntent(IntentType.GREETINGS, { greetings: '' })
+  // 发送一个modeType
+  sendIntent(IntentType.MODETYPE, { modeType: modeType.AIOSMODE })
   if (templateCardRef.value) autoAnimate(templateCardRef.value)
   setTimeout(() => {
     return
@@ -231,7 +235,7 @@ watchEffect(async () => {
   try {
     if (!socketState.message) return
     console.log(JSON.parse(socketState.message))
-    const { type, msg, id, token, nodeTitle, content, srType } = JSON.parse(socketState.message)
+    const { type, msg, id, token, nodeTitle, content, srType, imageUrl } = JSON.parse(socketState.message)
     const tokenId = id + token
     // 如果消息为空，不执行后面代码
     if (msg === '') return
@@ -282,6 +286,17 @@ watchEffect(async () => {
               },
             })
             break;
+          case MessageType.JSON_RESTAURANT_X:
+            const restaurantData = JSON.parse(message)
+            /* const data = {
+              address: '',
+              logo: '',
+              storeId: '',
+              storeName: ''
+            } */
+            arsViewMessage = restaurantData
+            console.log('餐厅', JSON.parse(message));
+            break
           case MessageType.USER:
             const { userId } = JSON.parse(message)
             arsMessage = `${getTimeGreeting(t)},${userId}`
@@ -326,8 +341,8 @@ watchEffect(async () => {
               cardFind.componentProps.photoList.push(
                 {
                   description: "",
-                  image: content,
-                  title: ""
+                  image: imageUrl,
+                  title: content
                 }
               )
             } else {
@@ -341,8 +356,8 @@ watchEffect(async () => {
                     photoList: [
                       {
                         description: "",
-                        image: content,
-                        title: ""
+                        image: imageUrl,
+                        title: content
                       }
                     ]
                   },
@@ -350,6 +365,42 @@ watchEffect(async () => {
               )
             }
             break;
+          case ShowRightType.NAVIGATE:
+            const { location, des } = JSON.parse(content)
+            pushTemplateCard({
+              id: token,
+              title: t('card.navigation'),
+              size: 'medium',
+              component: NavigationComponent,
+              componentProps: {
+                location,
+                des
+              },
+            })
+            break
+          case ShowRightType.MUSIC:
+            pushTemplateCard({
+              id: token,
+              title: t('card.music'),
+              size: 'small',
+              component: MusicComponent,
+              componentProps: {
+                musicUrl: content,
+                musicName: ''
+              },
+            })
+            break
+          case ShowRightType.RESTAURANT:
+            pushTemplateCard({
+              id: token,
+              title: t('card.shop'),
+              size: 'medium',
+              component: RestaurantsComponent,
+              componentProps: {
+                restaurantsList: JSON.parse(content)
+              },
+            })
+            break
         }
         break
     }
@@ -713,6 +764,7 @@ interface TemplateCard {
   title: string
   componentProps?: any
 }
+
 const templateShop = reactive<Shop[]>([
   /* {
     shopName: '商品1',
@@ -821,8 +873,8 @@ const allCards = reactive<TemplateCard[]>([
   }, */
   /* {
     id: Date.now() + Math.random(),
-    title: t('card.muisc'),
-    size: 'medium',
+    title: t('card.music'),
+    size: 'small',
     component: MusicComponent,
   }, */
   /* {
@@ -843,30 +895,6 @@ const allCards = reactive<TemplateCard[]>([
       templateProduct,
     },
   }, */
-  {
-    id: Date.now() + Math.random(),
-    title: '1-1',
-    size: 'medium',
-    component: ''
-  },
-  {
-    id: Date.now() + Math.random(),
-    title: '2-1',
-    size: 'small',
-    component: ''
-  },
-  {
-    id: Date.now() + Math.random(),
-    title: '2-2',
-    size: 'mini',
-    component: ''
-  },
-  {
-    id: Date.now() + Math.random(),
-    title: '2-2',
-    size: 'mini',
-    component: ''
-  }
 ])
 const cardRow = screenOrientation.value ? 4 : 4
 // 计算属性，用于确定哪些卡片属于第一列，哪些属于第二列

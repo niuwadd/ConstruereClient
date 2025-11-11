@@ -36,6 +36,7 @@ export const IntentType = {
   USERANSWER: 'userAnswer',
   GREETINGS: 'greetings',
   LANGUAGE: 'language',
+  MODETYPE: 'modeType',
 } as const
 export type IntentType = (typeof IntentType)[keyof typeof IntentType]
 
@@ -47,6 +48,7 @@ export const MessageType = {
   JSON: 'json',
   JSON_MENU: 'jsonMenu',
   JSON_RESTAURANT: 'jsonRestaurant',
+  JSON_RESTAURANT_X: 'jsonRestaurantX',
   USER: 'user',
   WEATHER: 'weather',
 } as const
@@ -62,6 +64,14 @@ export type AppName = (typeof AppName)[keyof typeof AppName]
 
 export const ShowRightType = {
   IMAGE: 'image',
-  NAVIGATION: 'navigation',
+  NAVIGATE: 'navigate',
+  MUSIC: 'music',
+  RESTAURANT: 'restaurant',
 }
 export type ShowRightType = (typeof ShowRightType)[keyof typeof ShowRightType]
+
+export const modeType = {
+  AIOSMODE: 'AIosMode',
+  AGENTICMODE: 'AgenticMode',
+}
+export type modeType = (typeof modeType)[keyof typeof modeType]

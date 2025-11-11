@@ -5,7 +5,9 @@ export default function useMessageHandler() {
   return (t?: (key: string) => {}) => {
     const agentMessageList = reactive<Message[]>([
       {
-        text: `${t ? t('agent.default.description') : 'agent.default.description'}`,
+        text: `${
+          t ? t('agent.default.description') : 'agent.default.description'
+        }`,
         type: 'agent',
       },
     ])
@@ -17,6 +19,10 @@ export default function useMessageHandler() {
     const handleTTSMessage = (
       message: string
     ): { message: string; type: MessageType } => {
+      let messageData: { message: string; type: MessageType } = {
+        message: message,
+        type: MessageType.TEXT,
+      }
       const regexs = [
         {
           type: MessageType.HTML,
@@ -35,6 +41,10 @@ export default function useMessageHandler() {
           regex: /饭店```([^`]+)```/,
         },
         {
+          type: MessageType.JSON_RESTAURANT_X,
+          regex: /餐厅```([^`]+)```/,
+        },
+        {
           type: MessageType.JSON_MENU,
           regex: /菜单```([^`]+)```/,
         },
@@ -47,20 +57,17 @@ export default function useMessageHandler() {
           regex: /weather```([^`]+)```/,
         },
       ]
-      // console.log('开始校验', message)
       for (const item of regexs) {
         if (message.match(item.regex)?.[1]) {
-          console.log('匹配成功', item.type)
-          return {
+          messageData = {
             type: item.type,
             message: message.match(item.regex)?.[1] || '',
           }
+          break
         }
       }
-      return {
-        type: MessageType.TEXT,
-        message,
-      }
+      console.log('匹配成功', messageData)
+      return messageData
     }
 
     const handleDialogueList = (message: MessageText, messageType: string) => {

@@ -35,16 +35,35 @@
             </div>
           </div>
         </div>
-        <!-- 当数据是餐厅数组 -->
+        <!-- 当数据是饭店数组 -->
         <div v-else-if="item.messageType === MessageType.JSON_RESTAURANT"
           class="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4">
-          <div class="flex flex-col gap-2 rounded-2xl shadow-[0_0_10px_4px_rgba(0,0,0,0.1)]" v-for="shop in item.text as Shop[]">
+          <div class="flex flex-col gap-2 rounded-2xl shadow-[0_0_10px_4px_rgba(0,0,0,0.1)]"
+            v-for="shop in item.text as Shop[]">
             <div class="w-full min-h-[100px] flex-1">
               <img class="w-full rounded-2xl" @load="onImageLoad" :src="shop.logo" alt="">
             </div>
             <h3 class="text-sm px-4">{{ shop.shopName }}</h3>
             <div class="flex justify-between items-end px-4 pb-4">
               <p class="text-xs w-[70%] truncate">{{ shop.shopDescription }}</p>
+            </div>
+          </div>
+        </div>
+        <!-- 当数据是餐厅数组 -->
+        <div v-else-if="item.messageType === MessageType.JSON_RESTAURANT_X"
+          class="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4">
+          <div
+            v-if="Array.isArray(item.text)"
+            class="flex flex-col gap-2 rounded-2xl shadow-[0_0_10px_4px_rgba(0,0,0,0.1)]"
+            v-for="restaurant in item.text as Restaurant[]"
+            :key="restaurant.storeId"
+          >
+            <div class="w-full min-h-[100px] flex-1">
+              <img class="w-full rounded-2xl" @load="onImageLoad" :src="restaurant.logo" alt="">
+            </div>
+            <h3 class="text-sm px-4">{{ restaurant.storeName }}</h3>
+            <div class="flex justify-between items-end px-4 pb-4">
+              <p class="text-xs w-[70%] truncate">{{ restaurant.address }}</p>
             </div>
           </div>
         </div>
@@ -62,7 +81,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Message, Product, Shop } from '../types'
+import type { Message, Product, Shop, Restaurant } from '../types'
 import { MessageType } from '../enum'
 import { toRef, onMounted } from 'vue'
 import { MdPreview } from 'md-editor-v3';

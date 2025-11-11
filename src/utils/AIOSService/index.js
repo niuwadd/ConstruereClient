@@ -62,6 +62,10 @@ function connectWebSocket(wsUrl) {
 
   ws.onmessage = function (event) {
     const message = event.data
+    /* const startTime = Date.now()
+    while (Date.now() - startTime < 5000) {
+      console.log('Waiting for WebSocket to open...')
+    } */
     // 将消息添加到响应式数据中
     socketState.messages.push(message)
     socketState.message = message

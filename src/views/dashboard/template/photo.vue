@@ -1,11 +1,11 @@
 <template>
   <div class="container">
     <div class="stack-container">
-      <div class="counter">{{ currentSlide + 1 }} / {{ slides.length }}</div>
-      <Swiper :direction="'vertical'" :slides-per-view="1" :space-between="0" :speed="600" :effect="'slide'"
-        :grab-cursor="true" :mousewheel="true" :initial-slide="slides.length - 1" :long-swipes-ratio="0.1"
-        :short-swipes="true" :observer="true" :observe-slide-children="true" :observe-parents="true" @swiper="onSwiper"
-        @slide-change="onSlideChange" class="swiper">
+      <!-- <div class="counter">{{ currentSlide + 1 }} / {{ slides.length }}</div> -->
+      <Swiper :auto-height="true" :direction="'vertical'" :slides-per-view="1" :space-between="0" :speed="600"
+        :effect="'slide'" :grab-cursor="true" :mousewheel="true" :initial-slide="slides.length - 1"
+        :long-swipes-ratio="0.1" :short-swipes="true" :observer="true" :observe-slide-children="true"
+        :observe-parents="true" @swiper="onSwiper" @slide-change="onSlideChange" class="swiper">
         <SwiperSlide v-for="(slide, index) in slides" :key="slide.id || index">
           <img :src="slide.image" :alt="slide.title">
           <div class="slide-content">
@@ -64,12 +64,14 @@ watch(() => props.photoList, (newList) => {
 <style scoped lang="scss">
 .container {
   width: 100%;
+  height: 100%;
 }
 
 .stack-container {
   position: relative;
   width: 100%;
-  height: 200px;
+  height: 100%;
+  // height: calc(100% - 2rem);
   margin: 0 auto;
   overflow: hidden;
   padding: 10px;
