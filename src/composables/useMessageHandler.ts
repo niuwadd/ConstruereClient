@@ -1,6 +1,6 @@
 import { reactive } from 'vue'
-import type { Message, MessageText } from '../types'
-import { MessageType } from '../enum'
+import type { Message, MessageText } from '../types/types'
+import { MessageType } from '../types/enum'
 export default function useMessageHandler() {
   return (t?: (key: string) => {}) => {
     const agentMessageList = reactive<Message[]>([

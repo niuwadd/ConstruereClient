@@ -3,6 +3,8 @@ import { createI18n } from 'vue-i18n'
 import App from './App.vue'
 import router from './router'
 import { autoAnimatePlugin } from '@formkit/auto-animate/vue'
+import VCalendar from 'v-calendar';
+import 'v-calendar/style.css';
 import './utils/AIOSService/index.js'
 import './assets/css/tailwindcss.css'
 import './assets/css/common.css'
@@ -135,5 +137,4 @@ const i18n = createI18n({
   fallbackLocale: 'zh', // 设置回退语言（当当前语言缺少翻译时使用）
   messages, // 注入翻译消息
 })
-createApp(App).use(router).use(autoAnimatePlugin).use(i18n).mount('#app')
-console.log('打包', import.meta.env)
+createApp(App).use(router).use(autoAnimatePlugin).use(i18n).use(VCalendar, {}).mount('#app')

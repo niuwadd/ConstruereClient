@@ -81,8 +81,8 @@
 </template>
 
 <script setup lang="ts">
-import type { Message, Product, Shop, Restaurant } from '../types'
-import { MessageType } from '../enum'
+import type { Message, Product, Shop, Restaurant } from '../types/types'
+import { MessageType } from '../types/enum'
 import { toRef, onMounted } from 'vue'
 import { MdPreview } from 'md-editor-v3';
 import 'md-editor-v3/lib/style.css';

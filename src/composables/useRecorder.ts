@@ -1,7 +1,7 @@
 import { ref, reactive } from 'vue'
 import { sendIntent } from '@/utils/AIOSService'
-import { IntentType } from '../enum'
-import { useMessageHandler, useAudioConversion } from '../composables/index'
+import { IntentType } from '../types/enum'
+import { useMessageHandler, useAudioConversion } from './index'
 const createMessageHandler = useMessageHandler()
 const { handleUserMessage } = createMessageHandler()
 const { arsApi } = useAudioConversion()

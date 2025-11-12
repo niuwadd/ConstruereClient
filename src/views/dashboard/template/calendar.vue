@@ -1,0 +1,15 @@
+<template>
+  <div>
+    <VCalendar expanded transparent borderless :is-dark="true" :attributes="attributes" />
+  </div>
+</template>
+<script lang="ts" setup>
+import { ref } from 'vue';
+const attributes = ref([
+  {
+    highlight: true,
+    dates: new Date(),
+  },
+]);
+</script>
+<style lang="scss" scoped></style>

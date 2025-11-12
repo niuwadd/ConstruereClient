@@ -1,8 +1,8 @@
 <template>
   <div class="flex flex-col gap-4">
-    <div class="flex justify-center">
+   <!--  <div class="flex justify-center">
       <img class="w-1/2" :src="Music" alt="">
-    </div>
+    </div> -->
     <div class="flex justify-center">
       <p>{{ musicName }}</p>
       <audio :src="musicUrl" controls autoplay></audio>

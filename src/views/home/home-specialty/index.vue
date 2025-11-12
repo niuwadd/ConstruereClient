@@ -88,8 +88,8 @@ import {
 } from '@headlessui/vue'
 import Microphone from '@/assets/svg/microphone.svg'
 import Close from '@/assets/svg/close.svg'
-import type { Agent, Message, Hardware, Product, Shop, MessageText } from '../types'
-import { TaskType, IntentType, ProviderType, MessageType, AppName } from '../enum'
+import type { Agent, Message, Hardware, Product, Shop, MessageText } from '../../../types/types'
+import { TaskType, IntentType, ProviderType, MessageType, AppName } from '../../../types/enum'
 // dom
 const recorderBgRef1 = ref<HTMLElement | null>(null)
 const recorderBgRef2 = ref<HTMLElement | null>(null)

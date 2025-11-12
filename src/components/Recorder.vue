@@ -16,8 +16,8 @@
 <script lang="ts" setup>
 import { reactive, ref, onMounted } from 'vue'
 import { sendIntent } from '@/utils/AIOSService'
-import { IntentType } from '@/views/home/enum'
-import { useAudioConversion } from '@/views/home/composables/index'
+import { IntentType } from '@/types/enum'
+import { useAudioConversion } from '@/composables/index'
 const { arsApi } = useAudioConversion()
 
 onMounted(() => {

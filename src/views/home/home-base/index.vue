@@ -127,14 +127,14 @@ import { sendIntent, socketState } from '@/utils/AIOSService'
 import { getTimeGreeting } from '@/utils'
 import { useI18n } from 'vue-i18n'
 // 组件
-import MessageList from '../model/messageList.vue'
+import MessageList from '../../../components/messageList.vue'
 import Microphone from '@/assets/svg/microphone.svg'
 import Left from '@/assets/svg/left.svg'
-import type { Hardware, Product, Shop, MessageText } from '../types'
-import { TaskType, IntentType, ProviderType, MessageType, AppName } from '../enum'
+import type { Hardware, Product, Shop, MessageText } from '../../../types/types'
+import { TaskType, IntentType, ProviderType, MessageType, AppName } from '../../../types/enum'
 import router from '@/router'
 // 逻辑
-import { useMessageHandler, useBScroll, useAgent, useScreenOrientation, useAudioConversion } from '../composables/index'
+import { useMessageHandler, useBScroll, useAgent, useScreenOrientation, useAudioConversion } from '../../../composables/index'
 const { t } = useI18n()
 // Agent选择处理
 const { agentList, currentAgent, handleAgent } = useAgent()
