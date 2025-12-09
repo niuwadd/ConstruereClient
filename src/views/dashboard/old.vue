@@ -62,7 +62,7 @@ import { getTimeGreeting } from '@/utils'
 import autoAnimate from "@formkit/auto-animate"
 import { useI18n } from 'vue-i18n'
 // 组件
-import MessageList from '@/components/messageList.vue'
+import MessageList from '@/components/MessageList.vue'
 import Restaurants from './template/restaurants.vue'
 import Photo from './template/photo.vue'
 import Navigation from './template/navigation.vue'
@@ -500,7 +500,7 @@ const processViewQueue = () => {
   while (viewQueue.length > 0) {
     const item = viewQueue.shift()
     if (item) {
-      handleDialogueList(item.viewMsg, item.msgType)
+      handleDialogueList(item.viewMsg, item.msgType, item.id, item.token)
       if (item.msgType === MessageType.IMAGE) {
         // 给摄像头硬件部分添加图片
         hardwareDataList[0].data = {

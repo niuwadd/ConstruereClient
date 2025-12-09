@@ -1,26 +1,29 @@
 import { createApp } from 'vue'
 import { createI18n } from 'vue-i18n'
+import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import { autoAnimatePlugin } from '@formkit/auto-animate/vue'
-import VCalendar from 'v-calendar';
-import 'v-calendar/style.css';
+import Toast from 'vue-toastification'
+import { initThriftClient, initStore } from '@/utils/AIOSService'
 import './utils/AIOSService/index.js'
+import 'vue-toastification/dist/index.css'
 import './assets/css/tailwindcss.css'
 import './assets/css/common.css'
 import './style.css'
-
+const pinia = createPinia()
 const messages = {
   zh: {
     message: {
       hello: '你好',
-      chatTitle: '聊天记录',
+      chatTitle: '对话',
       today: '今天是',
       weather: '天气',
       goodMorning: '早上好',
       goodNoon: '中午好',
       goodAfternoon: '下午好',
       goodEvening: '晚上好',
+      notMessage: '暂无消息'
     },
     agent: {
       default: {
@@ -80,6 +83,7 @@ const messages = {
       goodNoon: 'Good noon',
       goodAfternoon: 'Good afternoon',
       goodEvening: 'Good evening',
+      notMessage: 'Not message',
     },
     agent: {
       default: {
@@ -130,11 +134,20 @@ const messages = {
     },
   },
 }
-
+export { router }
 const i18n = createI18n({
   legacy: false,
   locale: 'zh', // 设置默认语言
   fallbackLocale: 'zh', // 设置回退语言（当当前语言缺少翻译时使用）
   messages, // 注入翻译消息
 })
-createApp(App).use(router).use(autoAnimatePlugin).use(i18n).use(VCalendar, {}).mount('#app')
+createApp(App)
+  .use(router)
+  .use(autoAnimatePlugin)
+  .use(i18n)
+  .use(pinia)
+  .use(Toast)
+  .mount('#app')
+// 在 Pinia 挂载后再初始化 store 和服务
+initStore()
+initThriftClient()

@@ -29,13 +29,11 @@ const props = defineProps<{
 }>()
 
 const slides = ref(props.photoList)
-console.log(slides.value);
 const currentSlide = ref(0)
 const swiperInstance = ref<SwiperType | null>(null)
 
 const onSwiper = (swiper: SwiperType) => {
   swiperInstance.value = swiper
-  console.log('Swiper实例:', swiper)
 }
 
 const onSlideChange = (swiper: SwiperType) => {
@@ -50,7 +48,6 @@ watch(() => slides.value.length, async (newLength, oldLength) => {
     if (swiperInstance.value) {
       // 直接滑动到最新的一项
       swiperInstance.value.slideTo(newLength - 1, 300)
-      console.log('滑动到最新项:', newLength - 1)
     }
   }
 })

@@ -2,23 +2,46 @@ import Thrift from './thrift'
 import aios from './aios_service_types'
 import { reactive } from 'vue'
 import { log } from 'three/tsl'
+import { useMessageStore } from '@/store/message'
+import { AppName, TaskType } from '@/types/enum'
 let ws = null
 let thriftClient = null
 let clientId = '123213213'
 let reconnectAttempts = 0
 const maxReconnectAttempts = 5
 let reconnectTimeout = null
+let messageStore = null
 export const socketState = reactive({
-  messages: [],
   isConnected: false,
   message: '',
   // 其他状态
 })
+/* const listMock = [
+  '{"type": "MAIN_FIND_APP", "appName": "医疗助理", "token":"3213213213213-3b-421r"}',
+  '{"type": "TTS", "msg": "测试测试测试测试测试测试", "token":"3213213213213-3b-421r"}',
+  '{"type": "TTS", "msg": "testtesttest", "token":"3213213213213-3b-421r" }',
+  '{"type": "MAIN_FIND_APP", "appName": "车辆健康管家", "token":"5545454545454545"}',
+  '{"type": "TTS", "msg": "testtesttest", "token":"35545454545454545"}',
+]
+for (const item of listMock) {
+  socketState.message = item
+} */
+/* setTimeout(() => {
+  socketState.message =
+    '{"type": "MAIN_FIND_APP", "appName": "医疗助理", "token":"3213213213213-3b-421r"}'
+  socketState.message =
+    '{"type": "TTS", "msg": "测试测试测试测试测试测试", "token":"3213213213213-3b-421r"}'
+  socketState.message =
+    '{"type": "TTS", "msg": "testtesttest", "token":"3213213213213-3b-421r" }'
+  socketState.message =
+    '{"type": "MAIN_FIND_APP", "appName": "车辆健康管家", "token":"5545454545454545"}'
+  socketState.message =
+    '{"type": "TTS", "msg": "testtesttest", "token":"35545454545454545"}'
+}, 1000) */
 // 初始化Thrift客户端
-function initThriftClient() {
+export function initThriftClient() {
   try {
     const transport = new Thrift.Transport('http://localhost:52002/thrift')
-    // 修改前
     const protocol = new Thrift.TJSONProtocol(transport)
     thriftClient = new aios.AIOSServiceClient(protocol)
     console.log('Thrift客户端初始化成功！')
@@ -27,7 +50,11 @@ function initThriftClient() {
     console.log(error)
   }
 }
-
+export function initStore() {
+  if (!messageStore) {
+    messageStore = useMessageStore()
+  }
+}
 // 注册并连接WebSocket
 function registerAndConnect() {
   if (!clientId) return
@@ -50,6 +77,11 @@ function registerAndConnect() {
 
 // 连接到WebSocket服务器
 function connectWebSocket(wsUrl) {
+  // 确保 store 已经初始化
+  if (!messageStore) {
+    initStore()
+  }
+
   // 清除之前的重连尝试
   reconnectAttempts = 0
 
@@ -62,13 +94,9 @@ function connectWebSocket(wsUrl) {
 
   ws.onmessage = function (event) {
     const message = event.data
-    /* const startTime = Date.now()
-    while (Date.now() - startTime < 5000) {
-      console.log('Waiting for WebSocket to open...')
-    } */
     // 将消息添加到响应式数据中
-    socketState.messages.push(message)
     socketState.message = message
+    handleSocketMessage(message)
   }
 
   ws.onclose = function (event) {
@@ -127,7 +155,60 @@ function sendWebSocketMessage(message) {
     ws.send(message)
   }
 }
+// socket消息处理
+function handleSocketMessage(message) {
+  // 确保 store 已经初始化
+  if (!messageStore) {
+    initStore()
+  }
 
+  try {
+    const parsedMessage = JSON.parse(message)
+    console.log(parsedMessage)
+    const { type, msg, token, id, appName, app, background } = parsedMessage
+    const tokenId = token + id
+    const messageFind = messageStore.messageList.find((v) => v.id === token)
+    if (app && !messageFind) {
+      if (background) {
+        messageStore.addBackground(token)
+      }
+      if (app !== AppName.GREETINGS) {
+        messageStore.addApp(app, token)
+      }
+      // console.log(messageStore.messageList)
+      // console.log(messageStore.backgroundTokens)
+    }
+    switch (type) {
+      case TaskType.TTS:
+        if (messageStore && msg) {
+          messageStore.addMessage(parsedMessage, token)
+        }
+        break
+      case TaskType.USER:
+        if (messageStore && msg) {
+          messageStore.addMessage(parsedMessage, token, true)
+        }
+        break
+      case TaskType.SHOWR:
+        if (messageStore) {
+          messageStore.addShowRightData(parsedMessage, token)
+        }
+        break
+        /* case TaskType.APP:
+        if (messageStore && appName) {
+          messageStore.addApp(appName, token)
+        }
+        break */
+        /* case TaskType.DONE:
+        if (messageStore) {
+          messageStore.clearMessage(token)
+        } */
+        break
+    }
+  } catch (error) {
+    console.error('解析socket消息失败:', error)
+  }
+}
 export function sendIntent(intentType, intentParams) {
   if (!thriftClient) {
     return
@@ -202,5 +283,3 @@ function sendToClient(targetClientId, message) {
     })
   } catch (error) {}
 }
-// 初始化Thrift客户端
-initThriftClient()

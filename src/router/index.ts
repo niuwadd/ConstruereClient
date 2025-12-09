@@ -15,16 +15,25 @@ const routes: RouteRecordRaw[] = [
     meta: { transition: 'home' },
   },
   {
-    path: '/chat',
-    name: 'Chat',
-    component: () => import('@/views/chat/index.vue'),
-    meta: { transition: 'chat' },
-  },
-  {
     path: '/dashboard',
     name: 'Dashboard',
+    redirect: '/dashboard/homePage',
     component: () => import('@/views/dashboard/index.vue'),
     meta: { transition: 'dashboard' },
+    children: [
+      {
+        path: '/dashboard/homePage',
+        name: 'dashboardHomePage',
+        component: () => import('@/views/dashboard/homePage.vue'),
+        meta: { transition: 'dashboardHomePage' },
+      },
+      {
+        path: '/dashboard/agentList',
+        name: 'dashboardAgentList',
+        component: () => import('@/views/dashboard/agentList.vue'),
+        meta: { transition: 'dashboardAgentList' },
+      },
+    ],
   },
   {
     path: '/home-specialty',

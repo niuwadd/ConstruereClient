@@ -9,3 +9,7 @@ interface SocketState<T = any> {
 export declare function sendIntent(type: string, data: any): Promise<void>
 
 export const socketState: SocketState
+
+export declare function initThriftClient(): void
+
+export declare function initStore(): void

@@ -18,6 +18,7 @@
       class="absolute top-4 right-4 p-3 rounded-3xl text-gray-600 bg-white/30 backdrop-blur-2xl">
       {{ $t('mode.aiosMode') }}
     </div>
+    <img class="absolute bottom-1 left-1 w-20" src="@/assets/image/logoCompany.jpeg" alt="">
     <div class="absolute top-4 right-32 text-right">
       <Menu as="div" class="relative inline-block text-left">
         <div>

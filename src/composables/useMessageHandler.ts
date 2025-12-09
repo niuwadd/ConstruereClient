@@ -66,23 +66,34 @@ export default function useMessageHandler() {
           break
         }
       }
-      console.log('匹配成功', messageData)
       return messageData
     }
 
-    const handleDialogueList = (message: MessageText, messageType: string) => {
+    const handleDialogueList = (
+      message: MessageText,
+      messageType: string,
+      id: string,
+      token: string
+    ) => {
       if (agentMessageList[agentMessageList.length - 1].loading) {
         agentMessageList[agentMessageList.length - 1] = {
           text: message,
           type: 'agent',
           messageType,
+          id,
+          token,
         }
       } else {
-        agentMessageList.push({ text: message, type: 'agent', messageType })
+        agentMessageList.push({
+          text: message,
+          type: 'agent',
+          messageType,
+          id,
+          token,
+        })
       }
     }
     const handleUserMessage = (message: string) => {
-      console.log('message------------', message)
       agentMessageList.push(
         {
           text: message,

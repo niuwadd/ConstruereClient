@@ -35,6 +35,10 @@ export type MessageText = string | UnionArray<Product, Shop, Restaurant>
 export interface Message {
   text: string | UnionArray<Product, Shop, MessageText>
   type: 'user' | 'agent'
+  msg?: string
+  app?: string
+  background?: Boolean
+  id?: string
   icon?: string
   token?: string
   messageType?: string

@@ -127,7 +127,7 @@ import { sendIntent, socketState } from '@/utils/AIOSService'
 import { getTimeGreeting } from '@/utils'
 import { useI18n } from 'vue-i18n'
 // 组件
-import MessageList from '../../../components/messageList.vue'
+import MessageList from '../../../components/MessageList.vue'
 import Microphone from '@/assets/svg/microphone.svg'
 import Left from '@/assets/svg/left.svg'
 import type { Hardware, Product, Shop, MessageText } from '../../../types/types'
@@ -425,7 +425,7 @@ const processViewQueue = () => {
     const item = viewQueue.shift()
     console.log('----------处理消息显示', item);
     if (item) {
-      handleDialogueList(item.viewMsg, item.msgType)
+      handleDialogueList(item.viewMsg, item.msgType, item.id, item.token)
       if (item.msgType === MessageType.IMAGE) {
         // 给摄像头硬件部分添加图片
         hardwareDataList[0].data = {

@@ -52,12 +52,9 @@
         <!-- 当数据是餐厅数组 -->
         <div v-else-if="item.messageType === MessageType.JSON_RESTAURANT_X"
           class="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4">
-          <div
-            v-if="Array.isArray(item.text)"
+          <div v-if="Array.isArray(item.text)"
             class="flex flex-col gap-2 rounded-2xl shadow-[0_0_10px_4px_rgba(0,0,0,0.1)]"
-            v-for="restaurant in item.text as Restaurant[]"
-            :key="restaurant.storeId"
-          >
+            v-for="restaurant in item.text as Restaurant[]" :key="restaurant.storeId">
             <div class="w-full min-h-[100px] flex-1">
               <img class="w-full rounded-2xl" @load="onImageLoad" :src="restaurant.logo" alt="">
             </div>

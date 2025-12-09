@@ -19,6 +19,8 @@ export const TaskType = {
   PROVIDER: 'PROVIDER',
   USER: 'GET_USER_ANSWER',
   SHOWR: 'SHOW_RIGHT',
+  APP: 'MAIN_FIND_APP',
+  DONE: 'DONE',
 } as const
 export type TaskType = (typeof TaskType)[keyof typeof TaskType]
 
@@ -37,6 +39,7 @@ export const IntentType = {
   GREETINGS: 'greetings',
   LANGUAGE: 'language',
   MODETYPE: 'modeType',
+  BACKGROUNDRUNNING: 'backgroundRunning',
 } as const
 export type IntentType = (typeof IntentType)[keyof typeof IntentType]
 
@@ -59,6 +62,8 @@ export const AppName = {
   MEDICAL: '医疗助理',
   REPAIR: '车辆健康管家',
   CHAT: '发朋友圈',
+  BACKGROUND: '后台提醒',
+  GREETINGS: 'greetings'
 }
 export type AppName = (typeof AppName)[keyof typeof AppName]
 
@@ -67,6 +72,8 @@ export const ShowRightType = {
   NAVIGATE: 'navigate',
   MUSIC: 'music',
   RESTAURANT: 'restaurant',
+  DINNER: 'dinner',
+  MENU: 'menu',
 }
 export type ShowRightType = (typeof ShowRightType)[keyof typeof ShowRightType]
 

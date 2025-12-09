@@ -1,13 +1,13 @@
 <template>
   <div class="flex flex-col h-full text-2xl font-bold relative portrait:w-full portrait:h-[400px]">
     <div class="absolute top-0 z-[2] flex justify-center items-center gap-4 w-full pb-4 backdrop-blur-[2px]">
-      <h2 class="text-center text-lg">{{ $t('message.chatTitle') }}</h2>
+      <h2 @click="router.push('/dashboard/agentList')" class="text-center text-lg">{{ $t('message.chatTitle') }}</h2>
     </div>
     <div ref="messageScrollRef" class="min-h-[200px] flex-1 overflow-hidden">
       <MessageList id="agentMessageList" class="pt-16 pb-28" :agentMessageList="agentMessageList"
         @imageLoad="handleImageLoad" />
     </div>
-    <div class="absolute bottom-0 z-[2] w-full py-4 backdrop-blur-[2px] flex justify-center">
+    <div v-if="props.isMicrophone" class="absolute bottom-0 z-[2] w-full py-4 backdrop-blur-[2px] flex justify-center">
       <div class="relative">
         <div @touchstart.passive="handleRecorderTouchstart" @touchend.passive="handleRecorderTouchend"
           @contextmenu="(e) => { e.preventDefault() }"
@@ -26,16 +26,26 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { ref, reactive, watchEffect, onMounted } from 'vue'
+import { ref, reactive, watch, onMounted } from 'vue'
+import { useRouter } from "vue-router"
 import { useI18n } from 'vue-i18n'
-import { getTimeGreeting } from '@/utils'
-import type { Hardware, Product, Shop, MessageText } from '@/types/types'
-import { TaskType, IntentType, ProviderType, MessageType, ShowRightType, modeType } from '@/types/enum'
-import { sendIntent, socketState } from '@/utils/AIOSService'
-import MessageList from '@/components/messageList.vue'
+import type { Product, Shop, MessageText } from '@/types/types'
+import { TaskType, IntentType, MessageType } from '@/types/enum'
+import { sendIntent } from '@/utils/AIOSService'
+import MessageList from '@/components/MessageList.vue'
 import Microphone from '@/assets/svg/microphone.svg'
+import { getTimeGreeting } from '@/utils'
 import { useMessageHandler, useBScroll, useVolumeMonitoring, useAudioConversion } from '@/composables/index'
+const props = withDefaults(defineProps<{
+  isMicrophone?: boolean
+  message?: Array<MessageText>
+  currentMessage?: MessageText
+}>(), {
+  isMicrophone: true, // 设置默认值为 true，你可以根据需要更改为 false 或其他值
+  message: () => []
+})
 const { t } = useI18n()
+const router = useRouter()
 const createMessageHandler = useMessageHandler()
 const {
   agentMessageList,
@@ -51,153 +61,129 @@ onMounted(() => {
   handleRecorder()
   // 初始化滚动
   initBScroll()
-  // 发送一个greetings
-  sendIntent(IntentType.GREETINGS, { greetings: '' })
+  setTimeout(() => {
+    return
+    handleAgentMessageListChange()
+  }, 1000)
 })
-watchEffect(async () => {
-  try {
-    if (!socketState.message) return
-    console.log(JSON.parse(socketState.message))
-    const { type, msg, id, token, nodeTitle, content, srType, imageUrl } = JSON.parse(socketState.message)
-    const tokenId = id + token
-    // 如果消息为空，不执行后面代码
-    if (msg === '') return
-    // 当接收到不同类型时的处理
-    switch (type) {
-      case TaskType.TTS:
-        // 正则表达式规则，以菜单:`开头，以`结尾, 播放的消息文本
-        let arsMessage = ''
-        // 显示的消息文本
-        let arsViewMessage = ''
-        const { type, message } = handleTTSMessage(msg)
-        switch (type) {
-          case MessageType.JSON_MENU:
-            const { data: productData } = JSON.parse(message)
-            arsMessage = productData.shop.productList.map((product: Product) => {
-              const { productName, productPrice } = product
-              return `${productName},${productPrice}元`
-            }).join('。')
-            arsViewMessage = productData.shop.productList
-            break;
-          case MessageType.JSON_RESTAURANT:
-            const { data: shopData } = JSON.parse(message)
-            arsMessage = shopData.shop_list.map((shop: Shop) => {
-              const { shopName, shopDescription } = shop
-              return `${shopName},${shopDescription}`
-            }).join('。')
-            arsViewMessage = shopData.shop_list
-            break;
-          case MessageType.JSON_RESTAURANT_X:
-            const restaurantData = JSON.parse(message)
-            arsViewMessage = restaurantData
-            console.log('餐厅', JSON.parse(message));
-            break
-          case MessageType.USER:
-            const { userId } = JSON.parse(message)
-            arsMessage = `${getTimeGreeting(t)},${userId}`
-            arsViewMessage = `${getTimeGreeting(t)},${userId}`
-            break;
-          case MessageType.WEATHER:
-            const { result: weatherData } = JSON.parse(message)
-            arsMessage = `今天是${weatherData.date}，${weatherData.week}，${weatherData.city}天气${weatherData.weather}`
-            arsViewMessage = `今天是${weatherData.date}，${weatherData.week}，${weatherData.city}天气${weatherData.weather}`
-            break;
-          case MessageType.MARKDOWN:
-            const regex = /notify```\s*([\s\S]*?)```/
-            arsMessage = msg.match(regex)?.[1]
-            arsViewMessage = message
-            break;
-          case MessageType.TEXT:
-            arsMessage = message
-            arsViewMessage = message
-            break;
-        }
-        handlePlayQueue(id, token, arsMessage, arsViewMessage, type)
-        break;
-      case TaskType.USER:
-        handlePlayQueue(id, token, msg, msg, MessageType.TEXT, TaskType.USER)
-        break
-      case TaskType.SHOWR:
-        /* switch (srType) {
-          case ShowRightType.IMAGE:
-            const cardFind = allCards.find(item => item.id === tokenId)
-            if (cardFind) {
-              cardFind.componentProps.photoList.push(
-                {
-                  description: "",
-                  image: imageUrl,
-                  title: content
-                }
-              )
-            } else {
-              allCards.push(
-                {
-                  title: nodeTitle,
-                  id: tokenId,
-                  size: 'small',
-                  component: Photo,
-                  componentProps: {
-                    photoList: [
-                      {
-                        description: "",
-                        image: imageUrl,
-                        title: content
-                      }
-                    ]
-                  },
-                }
-              )
-            }
-            break;
-          case ShowRightType.NAVIGATE:
-            const { location, des } = JSON.parse(content)
-            pushTemplateCard({
-              id: token,
-              title: t('card.navigation'),
-              size: 'medium',
-              component: NavigationComponent,
-              componentProps: {
-                location,
-                des
-              },
-            })
-            break
-          case ShowRightType.MUSIC:
-            pushTemplateCard({
-              id: token,
-              title: t('card.music'),
-              size: 'small',
-              component: MusicComponent,
-              componentProps: {
-                musicUrl: content,
-                musicName: ''
-              },
-            })
-            break
-          case ShowRightType.RESTAURANT:
-            pushTemplateCard({
-              id: token,
-              title: t('card.shop'),
-              size: 'medium',
-              component: RestaurantsComponent,
-              componentProps: {
-                restaurantsList: JSON.parse(content)
-              },
-            })
-            break
-        } */
-        break
+const handleAgentMessageListChange = () => {
+  agentMessageList.push(
+    {
+      text: '测试测试',
+      type: 'agent',
+      messageType: MessageType.TEXT,
+    },
+    {
+      text: '测试测试',
+      type: 'agent',
+      messageType: MessageType.TEXT,
+    },
+    {
+      text: '测试测试',
+      type: 'agent',
+      messageType: MessageType.TEXT,
+    },
+    {
+      text: 'https://picsum.photos/200/300',
+      type: 'agent',
+      messageType: MessageType.IMAGE,
+    },
+    {
+      text: 'https://picsum.photos/300/200',
+      type: 'agent',
+      messageType: MessageType.IMAGE,
+    },
+    {
+      text: 'dasdsadsad',
+      type: 'user',
+      messageType: MessageType.TEXT,
     }
-    // 图片处理
-    if (nodeTitle === ProviderType.CAMERA && msg.includes(MessageType.IMAGE)) {
-      handlePlayQueue(id, token, '', msg, MessageType.IMAGE)
+  )
+}
+// 监听消息列表变化
+watch(agentMessageList, () => updateScroll())
+watch(() => props.message, (value) => {
+  value.forEach((item) => {
+    agentMessageList.push({ ...item, text: item.msg, type: 'agent' })
+    if (item.type === TaskType.USER) {
+      currentIntentId.value = item.id
+      currentIntenToken.value = item.token
+      currentIntentMsg.value = item.viewMsg as string
+      currentIntentType.value = IntentType.USERANSWER
     }
-  } catch (error) {
-    console.error('不是一个有效的JSON数据', error)
-    const p = socketState.message.split(',')
-    console.log(p)
+  })
+}, { deep: true })
+watch(() => props.currentMessage, (value) => {
+  switch (value.type) {
+    case TaskType.TTS:
+      const { type, message } = handleTTSMessage(value.msg)
+      let arsMessage = ''
+      // 显示的消息文本
+      let arsViewMessage = ''
+      switch (type) {
+        case MessageType.JSON_MENU:
+          const { data: productData } = JSON.parse(message)
+          arsMessage = productData.shop.productList.map((product: Product) => {
+            const { productName, productPrice } = product
+            return `${productName},${productPrice}元`
+          }).join('。')
+          arsViewMessage = productData.shop.productList
+          break;
+        case MessageType.JSON_RESTAURANT:
+          const { data: shopData } = JSON.parse(message)
+          arsMessage = shopData.shop_list.map((shop: Shop) => {
+            const { shopName, shopDescription } = shop
+            return `${shopName},${shopDescription}`
+          }).join('。')
+          arsViewMessage = shopData.shop_list
+          break;
+        case MessageType.JSON_RESTAURANT_X:
+          const restaurantData = JSON.parse(message)
+          arsViewMessage = restaurantData
+          break;
+        case MessageType.USER:
+          const { userId } = JSON.parse(message)
+          arsMessage = `${getTimeGreeting(t)},${userId}`
+          arsViewMessage = `${getTimeGreeting(t)},${userId}`
+          break;
+        case MessageType.WEATHER:
+          const { result: weatherData } = JSON.parse(message)
+          arsMessage = `今天是${weatherData.date}，${weatherData.week}，${weatherData.city}天气${weatherData.weather}`
+          arsViewMessage = `今天是${weatherData.date}，${weatherData.week}，${weatherData.city}天气${weatherData.weather}`
+          break;
+        case MessageType.MARKDOWN:
+          const regex = /notify```\s*([\s\S]*?)```/
+          arsMessage = value.msg.match(regex)?.[1]
+          arsViewMessage = message
+          break;
+        case MessageType.TEXT:
+          arsMessage = message
+          arsViewMessage = message
+          break;
+      }
+      handlePlayQueue({
+        id: value.id,
+        token: value.token,
+        msg: arsMessage,
+        viewMsg: arsViewMessage,
+        msgType: type,
+        taskType: TaskType.TTS,
+        isBackground: value.background
+      })
+      break;
+    case TaskType.USER:
+      handlePlayQueue({
+        id: value.id,
+        token: value.token,
+        msg: value.msg,
+        viewMsg: value.msg,
+        msgType: MessageType.TEXT,
+        taskType: TaskType.USER,
+        isBackground: value.background
+      })
+      break;
   }
-})
+}, { deep: true })
 // 监听图片加载完成
 const handleImageLoad = () => updateScroll()
 // 是否播放
@@ -213,7 +199,8 @@ interface Queue {
   msg: string,
   viewMsg: MessageText,
   msgType: MessageType,
-  taskType: TaskType
+  taskType: TaskType,
+  isBackground?: boolean
 }
 const audioPlayRef = ref<HTMLAudioElement | null>(null)
 // 媒体录音
@@ -355,6 +342,10 @@ const handleRecorderData = async (blob: Blob) => {
   )
   if (currentIntentType.value === IntentType.ASR) {
     sendIntent(IntentType.ASR, { asrText: result })
+    router.currentRoute.value.query = {}
+    /* router.replace({
+      query: {},
+    }) */
   } else if (currentIntentType.value === IntentType.USERANSWER) {
     sendIntent(IntentType.USERANSWER, { userAnswer: result, id: currentIntentId.value, token: currentIntenToken.value })
     // 恢复为ASR
@@ -363,7 +354,7 @@ const handleRecorderData = async (blob: Blob) => {
   if (!isProcessing.value && playQueue.length) {
     processPlayQueue()
   }
-  if (!isProcessing.value && viewQueue.length) processViewQueue()
+  if (!isProcessing.value) processViewQueue()
 }
 const { startVolumeDetection, stopVolumeDetection } = useVolumeMonitoring(analyserNode.value as AnalyserNode, handleRecorderTouchend)
 /**
@@ -373,7 +364,8 @@ const { startVolumeDetection, stopVolumeDetection } = useVolumeMonitoring(analys
  * @param msgType 消息类型
  * @param intentType 意图类型
  */
-const handlePlayQueue = async (id: string, token: string, msg: string, viewMsg: MessageText, msgType: MessageType = 'text', taskType: TaskType = 'TTS'): Promise<void> => {
+const handlePlayQueue = async (queueData: Queue): Promise<void> => {
+  const { id, token, msg, viewMsg, msgType, taskType } = queueData
   viewQueue.push({ id, token, msg, viewMsg, msgType, taskType })
   playQueue.push({ id, token, msg, viewMsg, msgType, taskType })
   // 立即显示文字内容
@@ -450,7 +442,7 @@ const processViewQueue = () => {
   while (viewQueue.length > 0) {
     const item = viewQueue.shift()
     if (item) {
-      handleDialogueList(item.viewMsg, item.msgType)
+      handleDialogueList(item.viewMsg, item.msgType, item.id, item.token)
       if (item.taskType === TaskType.USER) {
         isProcessing.value = true
         currentIntentId.value = item.id
