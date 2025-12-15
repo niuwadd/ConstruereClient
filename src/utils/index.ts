@@ -74,21 +74,24 @@ export function getTimeGreeting(t: (key: string) => string) {
  * @param seconds 秒数
  * @returns 格式化后的时间字符串
  */
-export function formatTime(seconds: number): string {
+export function formatTime(
+  seconds: number,
+  t: (key: string) => string
+): string {
   if (seconds < 60) {
-    return `${seconds}秒`
+    return `${seconds}${t('unit.second')}`
   } else if (seconds < 3600) {
     const minutes = Math.floor(seconds / 60)
-    return `${minutes}分钟`
+    return `${minutes}${t('unit.minute')}`
   } else {
     const hours = Math.floor(seconds / 3600)
     const remainingSeconds = seconds % 3600
     const minutes = Math.floor(remainingSeconds / 60)
 
     if (minutes > 0) {
-      return `${hours}小时${minutes}分钟`
+      return `${hours}${t('unit.hour')}${minutes}${t('unit.minute')}`
     } else {
-      return `${hours}小时`
+      return `${hours}${t('unit.hour')}`
     }
   }
 }
@@ -101,14 +104,15 @@ export function formatTime(seconds: number): string {
  */
 export function formatDistanceAdvanced(
   meters: number,
-  decimalPlaces: number = 1
+  decimalPlaces: number = 1,
+  t: (key: string) => string
 ): string {
   if (meters < 1000) {
-    return `${meters}米`
+    return `${meters}${t('unit.meter')}`
   } else {
     const kilometers = meters / 1000
     const multiplier = Math.pow(10, decimalPlaces)
     const roundedKm = Math.round(kilometers * multiplier) / multiplier
-    return `${roundedKm}公里`
+    return `${roundedKm}${t('unit.kilometer')}`
   }
 }

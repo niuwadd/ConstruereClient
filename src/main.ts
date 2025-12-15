@@ -23,9 +23,18 @@ const messages = {
       goodNoon: '中午好',
       goodAfternoon: '下午好',
       goodEvening: '晚上好',
-      notMessage: '暂无消息'
+      notMessage: '暂无消息',
+    },
+    unit: {
+      distance: '全程',
+      meter: '米',
+      kilometer: '公里',
+      second: '秒',
+      minute: '分钟',
+      hour: '小时',
     },
     agent: {
+      executing: '个Agent正在执行',
       default: {
         title: '智能体',
         title_1: '我是您的智能体',
@@ -67,6 +76,9 @@ const messages = {
       shop: '餐厅',
       navigation: '导航',
       photo: '照片',
+      temperature: '温度',
+      humidity: '湿度',
+      batteryLevel: '剩余电量',
     },
     mode: {
       agentMode: '智能体模式',
@@ -85,7 +97,16 @@ const messages = {
       goodEvening: 'Good evening',
       notMessage: 'Not message',
     },
+    unit: {
+      distance: 'Distance',
+      meter: 'Meter',
+      kilometer: 'Kilometer',
+      second: 'Second',
+      minute: 'Minute',
+      hour: 'Hour',
+    },
     agent: {
+      executing: 'agent is currently executing',
       default: {
         title: 'Agent',
         title_1: 'I am your agent',
@@ -127,6 +148,9 @@ const messages = {
       shop: 'Restaurant',
       navigation: 'Navigation',
       photo: 'Photo',
+      temperature: 'Temperature',
+      humidity: 'Humidity',
+      batteryLevel: 'Battery Level',
     },
     mode: {
       agentMode: 'Agent Mode',

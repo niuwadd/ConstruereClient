@@ -32,7 +32,7 @@ export const useMessageStore = defineStore('message', {
     currentAgentRun: false as boolean,
     // 开启的agent列表
     messageList: [
-      /* {
+     /*  {
         appName: '医疗助理',
         id: '1',
         isAnswer: true,
@@ -99,8 +99,32 @@ export const useMessageStore = defineStore('message', {
             type: 'agent',
           },
         ],
-      }, */
-      /* {
+      },
+      {
+        appName: '智能助手',
+        id: '5',
+        isAnswer: false,
+        list: [
+          {
+            text: 'ChatGPT：Unlock Your Hardware，Connect Everything',
+            msg: 'ChatGPT：Unlock Your Hardware，Connect Everything',
+            type: 'agent',
+          },
+        ],
+      },
+      {
+        appName: '智能助手',
+        id: '5',
+        isAnswer: false,
+        list: [
+          {
+            text: 'ChatGPT：Unlock Your Hardware，Connect Everything',
+            msg: 'ChatGPT：Unlock Your Hardware，Connect Everything',
+            type: 'agent',
+          },
+        ],
+      },
+      {
         appName: '智能助手',
         id: '5',
         isAnswer: false,

@@ -22,6 +22,7 @@ import { ref, markRaw, onMounted, reactive, watch, computed, type Component } fr
 import { sendIntent } from '@/utils/AIOSService'
 import autoAnimate from "@formkit/auto-animate"
 import { useMessageStore } from '@/store/message'
+import { useI18n } from 'vue-i18n'
 // 组件
 import Chat from './template/chat.vue'
 import Temp from './template/temp.vue'
@@ -37,6 +38,7 @@ import BloodSugar from "@/assets/svg/blood-sugar.svg";
 import { IntentType, modeType, ShowRightType } from '@/types/enum'
 import { useRouter } from "vue-router"
 import type { Product, Restaurant } from '@/types/types'
+const { t } = useI18n()
 // 逻辑
 const messageStore = useMessageStore()
 // 标记组件为非响应式
@@ -109,12 +111,12 @@ const filterMessageList = computed(() => {
   return messageStore.messageList.filter(v => !messageStore.backgroundTokens.includes(v.id))
 })
 // 检测一次，是否关闭默认模板
-watch(messageStore.messageList, () => {
+watch(() => filterMessageList.value.length, () => {
   if (filterMessageList.value.length === 1) {
     allCards.splice(1, allCards.length - 1)
     allCards[0].row = [1, 3]
   }
-}, { once: true })
+})
 // 检测多次，是否跳转到agent列表
 watch(() => messageStore.messageList.length, () => {
   if (filterMessageList.value.length >= 2) {
@@ -296,7 +298,7 @@ const allCards = reactive<TemplateCard[]>([
     component: TempComponent,
     componentProps: {
       icon: Fan,
-      title: '温度',
+      title: t('card.temperature'),
       value: 20.5,
       unit: '℃'
     }
@@ -308,7 +310,7 @@ const allCards = reactive<TemplateCard[]>([
     component: TempComponent,
     componentProps: {
       icon: BloodSugar,
-      title: '湿度',
+      title: t('card.humidity'),
       value: 60,
       unit: '%'
     }

@@ -3,13 +3,15 @@
     <MapContainer :startPoint="location" :endPoint="des" @updateDistance="updateDistance" @updateTime="updateTime"
       class="rounded-xl overflow-hidden" />
     <div class="bg-gray-500 rounded-xl p-4 text-xl">
-      全程：{{ distance }} {{ time }}
+      {{ t('unit.distance') }}：{{ distance }} {{ time }}
     </div>
   </div>
 </template>
 <script setup lang="ts">
 import { toRefs, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import MapContainer from '@/components/MapContainer.vue'
+const { t } = useI18n()
 const distance = ref('')
 const time = ref('')
 const props = defineProps<{

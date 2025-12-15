@@ -194,13 +194,13 @@ function handleSocketMessage(message) {
           messageStore.addShowRightData(parsedMessage, token)
         }
         break
-        /* case TaskType.APP:
+      /* case TaskType.APP:
         if (messageStore && appName) {
           messageStore.addApp(appName, token)
         }
         break */
-        /* case TaskType.DONE:
-        if (messageStore) {
+      case TaskType.DONE:
+        /* if (messageStore) {
           messageStore.clearMessage(token)
         } */
         break

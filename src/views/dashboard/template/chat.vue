@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col h-full text-2xl font-bold relative portrait:w-full portrait:h-[400px]">
     <div class="absolute top-0 z-[2] flex justify-center items-center gap-4 w-full pb-4 backdrop-blur-[2px]">
-      <h2 @click="router.push('/dashboard/agentList')" class="text-center text-lg">{{ $t('message.chatTitle') }}</h2>
+      <h2 @click="updateScroll" class="text-center text-lg">{{ $t('message.chatTitle') }}</h2>
     </div>
     <div ref="messageScrollRef" class="min-h-[200px] flex-1 overflow-hidden">
       <MessageList id="agentMessageList" class="pt-16 pb-28" :agentMessageList="agentMessageList"

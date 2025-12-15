@@ -9,7 +9,9 @@ import { toRefs } from "vue";
 import AMapLoader from '@amap/amap-jsapi-loader';
 import { formatTime, formatDistanceAdvanced } from "../utils";
 import { onMounted, onUnmounted } from "vue";
+import { useI18n } from 'vue-i18n'
 import '@amap/amap-jsapi-types';
+const { t } = useI18n()
 const props = defineProps({
   startPoint: String,
   endPoint: String
@@ -57,8 +59,8 @@ onMounted(() => {
             //查询成功时，result 即为对应的驾车导航信息
             console.log(result)
             const route = result.routes[0]
-            emit("updateDistance", formatDistanceAdvanced(route.distance, 1))
-            emit("updateTime", formatTime(route.time))
+            emit("updateDistance", formatDistanceAdvanced(route.distance, 1, t))
+            emit("updateTime", formatTime(route.time, t))
           } else {
             console.log('获取驾车数据失败：' + result)
           }

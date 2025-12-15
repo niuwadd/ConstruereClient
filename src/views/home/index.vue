@@ -77,6 +77,7 @@ const { agentList, currentAgent } = useAgent()
 const changeLanguage = (lang: string) => {
   locale.value = lang // 切换语言
   console.log(lang === 'zh-CN' ? 'cn' : 'en');
+  sessionStorage.setItem('language', lang)
   sendIntent(IntentType.LANGUAGE, { language: lang === 'zh-CN' ? 'cn' : 'en' })
 }
 const openModal = () => {
