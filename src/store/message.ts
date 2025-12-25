@@ -32,7 +32,7 @@ export const useMessageStore = defineStore('message', {
     currentAgentRun: false as boolean,
     // 开启的agent列表
     messageList: [
-     /*  {
+      /* {
         appName: '医疗助理',
         id: '1',
         isAnswer: true,
@@ -135,14 +135,25 @@ export const useMessageStore = defineStore('message', {
             type: 'agent',
           },
         ],
-      } */
+      }, */
     ] as Agent[],
     // 后台提醒类列表(token列表)
     backgroundTokens: [] as string[],
     // 当前消息
     currentMessage: null as Message | null,
     // 显示的right数据
-    showRightData: [] as showRightAgent[],
+    showRightData: [
+      /* {
+        appName: '医疗助理',
+        id: '1',
+        isAnswer: true,
+        list: [
+          {
+            imageUrl: 'https://picsum.photos/200/300',
+          },
+        ],
+      }, */
+    ] as showRightAgent[],
     // 当前显示的right数据
     currentShowRigthData: null as showRightMessage | null,
     // 基础消息(非agent消息)
@@ -205,18 +216,24 @@ export const useMessageStore = defineStore('message', {
     addBackground(token: string) {
       this.backgroundTokens.push(token)
     },
-    clearMessage(id: string) {
-      console.log('清除流程数据', id, this.messageList)
-      const clearMessageFind = this.messageList.findIndex(
-        (item) => item.id === id
-      )
-      if (clearMessageFind != -1) {
-        this.messageList.splice(clearMessageFind, 1)
-        this.currentDoneToken = id
-        /* router.replace({
+    clearMessage(id?: string) {
+      if (!id) {
+        console.log('清除所有数据');
+        // this.messageList = []
+        // this.messageList.splice(0, this.messageList.length)
+      } else {
+        console.log('清除流程数据', id, this.messageList)
+        const clearMessageFind = this.messageList.findIndex(
+          (item) => item.id === id
+        )
+        if (clearMessageFind != -1) {
+          this.messageList.splice(clearMessageFind, 1)
+          this.currentDoneToken = id
+          /* router.replace({
           query: {},
         }) */
-        console.log('流程完毕，清除流程数据', this.messageList)
+          console.log('流程完毕，清除流程数据', this.messageList)
+        }
       }
     },
   },

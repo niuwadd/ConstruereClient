@@ -40,6 +40,7 @@ export const IntentType = {
   LANGUAGE: 'language',
   MODETYPE: 'modeType',
   BACKGROUNDRUNNING: 'backgroundRunning',
+  STOPALLWORKFLOW: 'stopAllWorkflow',
 } as const
 export type IntentType = (typeof IntentType)[keyof typeof IntentType]
 
@@ -63,7 +64,7 @@ export const AppName = {
   REPAIR: '车辆健康管家',
   CHAT: '发朋友圈',
   BACKGROUND: '后台提醒',
-  GREETINGS: 'greetings'
+  GREETINGS: 'greetings',
 }
 export type AppName = (typeof AppName)[keyof typeof AppName]
 

@@ -24,6 +24,7 @@ const messages = {
       goodAfternoon: '下午好',
       goodEvening: '晚上好',
       notMessage: '暂无消息',
+      chatPlaceholder: '请输入'
     },
     unit: {
       distance: '全程',
@@ -96,6 +97,7 @@ const messages = {
       goodAfternoon: 'Good afternoon',
       goodEvening: 'Good evening',
       notMessage: 'Not message',
+      chatPlaceholder: 'Please input',
     },
     unit: {
       distance: 'Distance',
@@ -161,7 +163,7 @@ const messages = {
 export { router }
 const i18n = createI18n({
   legacy: false,
-  locale: 'zh', // 设置默认语言
+  locale: 'en', // 设置默认语言
   fallbackLocale: 'zh', // 设置回退语言（当当前语言缺少翻译时使用）
   messages, // 注入翻译消息
 })
@@ -170,7 +172,9 @@ createApp(App)
   .use(autoAnimatePlugin)
   .use(i18n)
   .use(pinia)
-  .use(Toast)
+  .use(Toast, {
+    position: 'top-center',
+  })
   .mount('#app')
 // 在 Pinia 挂载后再初始化 store 和服务
 initStore()

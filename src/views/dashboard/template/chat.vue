@@ -3,12 +3,29 @@
     <div class="absolute top-0 z-[2] flex justify-center items-center gap-4 w-full pb-4 backdrop-blur-[2px]">
       <h2 @click="updateScroll" class="text-center text-lg">{{ $t('message.chatTitle') }}</h2>
     </div>
-    <div ref="messageScrollRef" class="min-h-[200px] flex-1 overflow-hidden">
+    <div ref="messageScrollRef" class="min-h-[100px] flex-1 overflow-hidden">
       <MessageList id="agentMessageList" class="pt-16 pb-28" :agentMessageList="agentMessageList"
         @imageLoad="handleImageLoad" />
     </div>
-    <div v-if="props.isMicrophone" class="absolute bottom-0 z-[2] w-full py-4 backdrop-blur-[2px] flex justify-center">
-      <div class="relative">
+    <div v-if="props.isMicrophone" class="absolute bottom-0 z-[2] w-full backdrop-blur-[2px] flex justify-center">
+      <div class="w-full h-[50px] p-2 bg-white/60 rounded-lg flex items-center">
+        <!-- <input v-model="sendText" placeholder="请输入"
+          class="absolute -top-10 left-2 text-base border-2 outline-none text-white flex-1 placeholder:text-sm w-0"
+          type="text"> -->
+        <input v-model="sendText" :placeholder="t('message.chatPlaceholder')"
+          class="text-base outline-none text-gray-600 flex-1 placeholder:text-sm" type="text">
+        <div class="flex gap-2 items-center">
+          <div @click="handleRecord" class="rounded-full p-1" :class="isRecording ? 'bg-[#6860ff]/50' : ''">
+            <div class="rounded-full p-1" :class="isRecording ? 'bg-[#6860ff]' : ''">
+              <Voice class="size-6" :class="isRecording ? 'fill-white' : 'fill-gray-600'" />
+            </div>
+          </div>
+          <div @click="handleSendMessage(sendText)">
+            <Send class="size-6 fill-gray-600" />
+          </div>
+        </div>
+      </div>
+      <!-- <div class="relative">
         <div @touchstart.passive="handleRecorderTouchstart" @touchend.passive="handleRecorderTouchend"
           @contextmenu="(e) => { e.preventDefault() }"
           class="relative z-20 size-[70px] rounded-full bg-linear-to-r from-[#6886fc] to-[#6958fb] flex items-center justify-center">
@@ -20,20 +37,22 @@
         <div class="absolute inset-0 size-[70px] rounded-full bg-black/10 z-10"
           :class="isAnimating ? 'recorder-bg-2' : ''">
         </div>
-      </div>
+      </div> -->
     </div>
     <audio ref="audioPlayRef" @ended="isAudioPlay = false" class="hidden" controls></audio>
   </div>
 </template>
 <script lang="ts" setup>
-import { ref, reactive, watch, onMounted } from 'vue'
+import { ref, reactive, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from "vue-router"
 import { useI18n } from 'vue-i18n'
 import type { Product, Shop, MessageText } from '@/types/types'
 import { TaskType, IntentType, MessageType } from '@/types/enum'
 import { sendIntent } from '@/utils/AIOSService'
 import MessageList from '@/components/MessageList.vue'
-import Microphone from '@/assets/svg/microphone.svg'
+// import Microphone from '@/assets/svg/microphone.svg'
+import Send from '@/assets/svg/send.svg'
+import Voice from '@/assets/svg/voice.svg'
 import { getTimeGreeting } from '@/utils'
 import { useMessageHandler, useBScroll, useVolumeMonitoring, useAudioConversion } from '@/composables/index'
 const props = withDefaults(defineProps<{
@@ -65,6 +84,17 @@ onMounted(() => {
     return
     handleAgentMessageListChange()
   }, 1000)
+})
+onUnmounted(() => {
+  if (mediaRecorder.value && mediaRecorder.value.state !== 'inactive') {
+    mediaRecorder.value.stop();
+  }
+  if (audioContext.value) {
+    audioContext.value.close();
+  }
+  /* if (stream.value) {
+    stream.value.getTracks().forEach(track => track.stop());
+  } */
 })
 const handleAgentMessageListChange = () => {
   agentMessageList.push(
@@ -209,12 +239,14 @@ const mediaRecorder = ref<MediaRecorder | null>(null)
 const audioContext = ref<AudioContext | null>(null)
 // 音频节点
 const analyserNode = ref<AnalyserNode | null>(null)
+// 正在录音中
+const isRecording = ref<boolean>(false)
 // 当前播放状态
-const isPlaying = ref(false)
+const isPlaying = ref<boolean>(false)
 // 当前是否在处理播放队列
-const isProcessing = ref(false)
+const isProcessing = ref<boolean>(false)
 // 手动中断
-const breakPlayQueue = ref(false)
+const breakPlayQueue = ref<boolean>(false)
 // 当前Intent的消息
 const currentIntentMsg = ref<string>('')
 // 播放队列
@@ -224,9 +256,8 @@ const viewQueue = reactive<Array<Queue>>([])
 const pressTimer = ref<number | null>(null)
 // 播放控制
 const isAnimating = ref<boolean>(false)
-const isMonitoring = ref<boolean>(true)
 // 是否有录音权限
-const hasRecorderPermission = ref(true)
+const hasRecorderPermission = ref<boolean>(true)
 // 处理录音
 const handleRecorder = async () => {
   try {
@@ -256,6 +287,7 @@ const handleRecorder = async () => {
     let chunks: Blob[] = []
     // 监听录音停止
     mediaRecorder.value.onstop = async () => {
+      console.log('结束录音', mediaRecorder.value);
       const blob = new Blob(chunks, { type: mediaRecorder.value?.mimeType })
       // 调用语音识别接口
       await handleRecorderData(blob)
@@ -287,7 +319,6 @@ const handleRecorderTouchstart = () => {
   }
   pressTimer.value = setTimeout(() => {
     isAnimating.value = true
-    isMonitoring.value = true
     if (hasRecorderPermission.value) {
       // 恢复音频上下文
       audioContext.value?.resume().then(() => {
@@ -307,7 +338,6 @@ const handleRecorderTouchstart = () => {
 const handleRecorderTouchend = () => {
   if (pressTimer.value) {
     isAnimating.value = false
-    isMonitoring.value = false
     // 恢复自动中断
     isProcessing.value = false
     // 恢复手动中断
@@ -332,6 +362,8 @@ const handleRecorderTouchend = () => {
 const handleRecorderData = async (blob: Blob) => {
   // 调用语音识别接口
   const result: string = await arsApi(blob)
+  sendText.value = result
+  return
   agentMessageList.push(
     {
       text: result, type: 'user'
@@ -374,6 +406,7 @@ const handlePlayQueue = async (queueData: Queue): Promise<void> => {
   }
   // 将需要语音播报的内容加入播放队列（仅语音需要的内容）
   if ((msg || msgType === MessageType.IMAGE)) {
+    console.log('语音队列-------', playQueue);
     if (!isPlaying.value) {
       isPlaying.value = true
       if (!isProcessing.value || msg === currentIntentMsg.value) {
@@ -425,14 +458,19 @@ const processPlayQueue = async () => {
       const res = await ttsApi(item.msg)
       await handleAudioPlay(res.file)
       // 处理用户输入
-      if (item.taskType === TaskType.USER) {
+      /* if (item.taskType === TaskType.USER) {
         handleRecorderTouchstart()
         startVolumeDetection()
-      }
+      } */
       if (isProcessing.value && item.msg === currentIntentMsg.value) break
     }
   }
   isPlaying.value = false
+  if ('GET_USER_ANSWER' === TaskType.USER) {
+    return
+    handleRecorderTouchstart()
+    startVolumeDetection()
+  }
 }
 
 /**
@@ -452,6 +490,58 @@ const processViewQueue = () => {
       }
       if (isProcessing.value) break
     }
+  }
+}
+// 发送的文本
+const sendText = ref<string>('')
+/**
+ * 发送消息
+ * @param text 
+ */
+const handleSendMessage = (text: string) => {
+  if (!text) return
+  sendText.value = ''
+  agentMessageList.push(
+    {
+      text: text, type: 'user'
+    },
+    {
+      text: '', type: 'agent', loading: true
+    },
+  )
+  if (audioPlayRef.value && !audioPlayRef.value.paused) {
+    audioPlayRef.value.pause()
+  }
+  isProcessing.value = false
+  if (currentIntentType.value === IntentType.ASR) {
+    sendIntent(IntentType.ASR, { asrText: text })
+    router.currentRoute.value.query = {}
+  } else if (currentIntentType.value === IntentType.USERANSWER) {
+    sendIntent(IntentType.USERANSWER, { userAnswer: text, id: currentIntentId.value, token: currentIntenToken.value })
+    // 恢复为ASR
+    currentIntentType.value = IntentType.ASR
+  }
+  if (!isProcessing.value && playQueue.length) {
+    processPlayQueue()
+  }
+  if (!isProcessing.value) processViewQueue()
+}
+/**
+ * 录音按钮点击事件(开始/结束录音)
+ */
+const handleRecord = () => {
+  isRecording.value = !isRecording.value
+  if (isRecording.value) {
+    if (audioPlayRef.value && !audioPlayRef.value.paused) {
+      audioPlayRef.value.pause()
+    }
+    isProcessing.value = false
+    audioContext.value?.resume().then(() => {
+      console.log('开始录音', mediaRecorder.value);
+      mediaRecorder.value?.start()
+    })
+  } else {
+    mediaRecorder.value?.stop()
   }
 }
 </script>

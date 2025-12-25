@@ -23,6 +23,8 @@ import { sendIntent } from '@/utils/AIOSService'
 import autoAnimate from "@formkit/auto-animate"
 import { useMessageStore } from '@/store/message'
 import { useI18n } from 'vue-i18n'
+import { useToast } from "vue-toastification"
+
 // 组件
 import Chat from './template/chat.vue'
 import Temp from './template/temp.vue'
@@ -32,7 +34,7 @@ import Navigation from './template/navigation.vue'
 import Music from './template/music.vue'
 import Calendar from './template/calendar.vue'
 import Battery from './template/battery.vue'
-import Background from './template/background.vue'
+// import Background from './template/background.vue'
 import Fan from "@/assets/svg/fan.svg";
 import BloodSugar from "@/assets/svg/blood-sugar.svg";
 import { IntentType, modeType, ShowRightType } from '@/types/enum'
@@ -50,7 +52,9 @@ const PhotoComponent = markRaw(Photo)
 const ShopComponent = markRaw(Shop)
 const NavigationComponent = markRaw(Navigation)
 const MusicComponent = markRaw(Music)
-const BackgroundComponent = markRaw(Background)
+// const BackgroundComponent = markRaw(Background)
+const toast = useToast();
+
 const router = useRouter()
 const templateCardRef = ref<HTMLElement | null>(null)
 const animateCards = computed(() => {
@@ -126,6 +130,8 @@ watch(() => messageStore.messageList.length, () => {
 // 监听ShowRigth
 watch(() => messageStore.currentShowRigthData, (value) => {
   if (!value) return
+  console.log(currentToken.value, value.token);
+  if (currentToken.value && currentToken.value !== value.token) return
   handleShowRight(value)
 })
 watch(() => messageStore.currentMessage, (value) => {
@@ -133,7 +139,11 @@ watch(() => messageStore.currentMessage, (value) => {
   // 判断当前是否有token，如果有表示是从agentList跳转过来的(在跳转过来的agent运行结束后需要清除token)
   if (currentToken.value && currentToken.value !== value.token) return
   if (value.background && !currentToken.value) {
-    animateCards.value[4].componentProps.currentMessage = { ...value }
+    console.log('背景运行', value);
+    // animateCards.value[4].componentProps.currentMessage = { ...value }
+    toast(value.msg, {
+      timeout: 2000,
+    });
   } else {
     animateCards.value[0].componentProps.currentMessage = { ...value }
   }
@@ -317,11 +327,11 @@ const allCards = reactive<TemplateCard[]>([
   },
   {
     id: '5',
-    column: [4, 1],
+    column: [3, 2],
     row: [1, 2],
     component: CalendarComponent,
   },
-  {
+  /* {
     id: '6',
     column: [3, 1],
     row: [1, 2],
@@ -329,7 +339,7 @@ const allCards = reactive<TemplateCard[]>([
     componentProps: {
       currentMessage: {},
     }
-  },
+  }, */
   {
     id: '4',
     column: [3, 2],

@@ -1,6 +1,6 @@
 <template>
-  <div class="h-full flex flex-col justify-between">
-    <component class="size-[30px] fill-white" :is='icon'></component>
+  <div class="h-full flex flex-col justify-between overflow-auto">
+    <component class="size-[30px] fill-white shrink-0" :is='icon'></component>
     <div>
       <p class="text-white">{{ title }}</p>
       <p class="text-xl">{{ value }}<span>{{ unit }}</span></p>

@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="h-full overflow-auto">
     <lightning class="size-[30px] fill-white pb-2" />
     <div class="flex flex-col gap-y-2">
       <div class="flex justify-between items-center">

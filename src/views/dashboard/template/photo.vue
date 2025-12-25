@@ -162,7 +162,7 @@ watch(() => props.photoList, (newList) => {
 /* 响应式设计 */
 @media (max-width: 768px) {
   .stack-container {
-    height: 400px;
+   // height: 400px;
   }
 
   button {
@@ -173,7 +173,7 @@ watch(() => props.photoList, (newList) => {
 
 @media (max-width: 480px) {
   .stack-container {
-    height: 350px;
+   // height: 350px;
   }
 
   .slide-content {

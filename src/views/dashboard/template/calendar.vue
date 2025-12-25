@@ -17,9 +17,13 @@ onMounted(() => {
 const getLocale = computed(() => {
   const language = sessionStorage.getItem('language');
   console.log(language);
-  
+
   return language === 'zh-CN' ? 'zh-cn' : 'en';
 });
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.vuecal__cell--today>.vuecal__cell-content {
+  border-color: red;
+}
+</style>

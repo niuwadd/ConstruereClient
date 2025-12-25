@@ -8,7 +8,7 @@
           </li>
         </ul>
       </div>
-      <img v-show="!isOpen" @click="openModal" class="bot-img w-[480px] portrait:w-[80%]" :src="blink" alt="">
+      <img v-show="!isOpen" @click="openModal" class="bot-img w-[50%] portrait:w-[80%]" :src="blink" alt="">
       </img>
       <transition name="agentImg">
         <img v-show="isOpen" class="bot-img w-[180px]" :src="currentAgent?.icon">
@@ -18,7 +18,10 @@
       class="absolute top-4 right-4 p-3 rounded-3xl text-gray-600 bg-white/30 backdrop-blur-2xl">
       {{ $t('mode.aiosMode') }}
     </div>
-    <img class="absolute bottom-1 left-1 w-20" src="@/assets/image/logoCompany.jpeg" alt="">
+    <div class="absolute bottom-1 left-1 flex items-center gap-2">
+      <img class="w-20" src="@/assets/image/logoCompany.jpeg" alt="">
+      <img class="w-24" src="@/assets/image/LenovoLogo-Chinese_POS-Red-H.png" alt="">
+    </div>
     <div class="absolute top-4 right-32 text-right">
       <Menu as="div" class="relative inline-block text-left">
         <div>
@@ -58,14 +61,14 @@
   </div>
 </template>
 <script lang="ts" setup>
-
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
-import { useAgent } from '../../composables/index'
+import { useAgent } from '@/composables/index'
 import { IntentType } from '@/types/enum'
 import { sendIntent } from '@/utils/AIOSService'
+import { useMessageStore } from "@/store/message"
 import Translation from '@/assets/svg/translation.svg'
 import blink from '@/assets/image/Blink.gif'
 
@@ -73,7 +76,11 @@ const router = useRouter()
 const isOpen = ref(false)
 const { locale } = useI18n()
 const { agentList, currentAgent } = useAgent()
-
+const messageStore = useMessageStore()
+onMounted(() => {
+  sendIntent(IntentType.STOPALLWORKFLOW, { stopAllWorkflow: '' })
+  messageStore.clearMessage()
+})
 const changeLanguage = (lang: string) => {
   locale.value = lang // 切换语言
   console.log(lang === 'zh-CN' ? 'cn' : 'en');

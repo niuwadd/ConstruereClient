@@ -3,9 +3,8 @@
     <div @click="$router.push('/')" class="absolute top-2 right-2 rounded-3xl text-white text-sm ">
       {{ $t('mode.agentMode') }}
     </div>
-    <div @click="$router.push('/dashboard/agentList')" v-if="messageStore.messageList.length"
-      class="absolute top-2 pl-10 rounded-3xl text-white text-sm">
-      {{ messageStore.messageList.length }}{{ t('agent.executing') }}
+    <div v-if="messageStore.messageList.length" @click="$router.replace('/dashboard/agentList')" class="absolute top-2 pl-10 rounded-3xl text-white text-sm">
+      <p>{{ messageStore.messageList.length }}{{ t('agent.executing') }}</p>
     </div>
     <router-view></router-view>
   </div>

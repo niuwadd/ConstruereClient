@@ -1,14 +1,14 @@
 <template>
   <div class="size-full p-10">
-
     <div class="size-full overflow-auto">
-      <div class="h-full w-max grid grid-rows-2 gap-4" :class="getGridCols">
-        <div @click="router.push({
+      <!--  :class="getGridCols" -->
+      <div class="w-full grid grid-cols-2 gap-4">
+        <div class="flex flex-col h-[calc(100vh-340px)]" @click="router.replace({
           path: '/dashboard/homePage',
           query: {
             id: item.id as string
           }
-        })" v-for="item in messageStore.messageList" class="flex flex-col w-[500px]">
+        })" v-for="item in messageStore.messageList">
           <div
             class="rounded-tr-2xl rounded-tl-2xl bg-white/25 px-4 py-2 border-b-[1px] border-solid border-white/25 flex justify-between items-center">
             <h2 @click.stop="updateScroll(item.id)" class="text-white">{{ item.appName }}</h2>
@@ -18,23 +18,27 @@
             </div>
           </div>
           <div :ref="el => setScrollRef(el as HTMLElement | null, item.id)"
-            class="rounded-br-2xl rounded-bl-2xl bg-white/25 p-4 pt-0 flex-1 min-h-[200px] overflow-hidden">
+            class="rounded-br-2xl rounded-bl-2xl bg-white/25 p-4 pt-0 flex-1 min-h-[50px] overflow-hidden">
             <MessageList class="p-4" :agentMessageList="handelerMessageList(item.list)" />
           </div>
         </div>
       </div>
     </div>
+    <div @click="router.push('/dashboard/homePage')"
+      class="absolute top-[50%] transform-[translate(0,-50%)] left-0 flex items-center rounded-r-2xl h-[100px] bg-white/25">
+      <Back class="fill-white size-6" />
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, nextTick, onBeforeUnmount, onMounted } from "vue"
+import { computed, nextTick, onBeforeUnmount, onMounted, watchEffect } from "vue"
 import { useRouter } from "vue-router"
 import { useMessageStore } from "@/store/message"
 import MessageList from '@/components/MessageList.vue'
 import Close from "@/assets/svg/close.svg"
 import InfoCircle from "@/assets/svg/info-circle.svg"
-// import Back from "@/assets/svg/back.svg"
+import Back from '@/assets/svg/back.svg'
 // 引入 BetterScroll
 import BScroll from '@better-scroll/core'
 const messageStore = useMessageStore()
@@ -42,12 +46,12 @@ const router = useRouter()
 const handelerMessageList = computed(() => {
   return (list: any): any => {
     return list.map((item: any) => {
-      return {
-        text: item.msg,
-        type: 'agent'
-      }
+      return { text: item.msg, type: 'agent' }
     })
   }
+})
+watchEffect(() => {
+
 })
 // 存储滚动实例的映射
 const scrollInstances = new Map()
@@ -85,13 +89,12 @@ const clearMessage = (id: string) => {
   messageStore.clearMessage(id)
 }
 
-const getGridCols = computed(() => {
+/* const getGridCols = computed(() => {
   const closNumber = Math.ceil(messageStore.messageList.length / 2)
+  console.log(closNumber);
   return messageStore.messageList.length > 4 ? `grid-cols-${closNumber}` : 'grid-cols-2'
-})
-/* const viewStore = () => {
-  console.log(messageStore.messageList);
-} */
+}) */
+
 onMounted(() => {
 
 })
@@ -104,7 +107,6 @@ onBeforeUnmount(() => {
 })
 </script>
 <style lang="scss" scoped>
-/* HTML: <div class="loader"></div> */
 .loader {
   width: 6px;
   aspect-ratio: 1;
