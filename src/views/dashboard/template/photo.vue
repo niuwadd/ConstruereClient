@@ -71,7 +71,7 @@ watch(() => props.photoList, (newList) => {
   // height: calc(100% - 2rem);
   margin: 0 auto;
   overflow: hidden;
-  padding: 10px;
+  // padding: 10px;
 }
 
 .swiper {
@@ -105,7 +105,9 @@ watch(() => props.photoList, (newList) => {
   right: 0;
   background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, transparent 100%);
   color: white;
-  padding: 20px;
+  padding: 10px;
+  height: 100%;
+  overflow: auto;
 }
 
 .slide-title {
@@ -116,6 +118,7 @@ watch(() => props.photoList, (newList) => {
 .slide-desc {
   font-size: 0.9rem;
   opacity: 0.8;
+  word-wrap: break-word;
 }
 
 /* 自定义Swiper样式 */
@@ -162,7 +165,7 @@ watch(() => props.photoList, (newList) => {
 /* 响应式设计 */
 @media (max-width: 768px) {
   .stack-container {
-   // height: 400px;
+    // height: 400px;
   }
 
   button {
@@ -173,7 +176,7 @@ watch(() => props.photoList, (newList) => {
 
 @media (max-width: 480px) {
   .stack-container {
-   // height: 350px;
+    // height: 350px;
   }
 
   .slide-content {

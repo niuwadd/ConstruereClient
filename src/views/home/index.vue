@@ -79,6 +79,7 @@ const { agentList, currentAgent } = useAgent()
 const messageStore = useMessageStore()
 onMounted(() => {
   sendIntent(IntentType.STOPALLWORKFLOW, { stopAllWorkflow: '' })
+  changeLanguage('zh-CN')
   messageStore.clearMessage()
 })
 const changeLanguage = (lang: string) => {

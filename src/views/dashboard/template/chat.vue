@@ -1,31 +1,28 @@
 <template>
   <div class="flex flex-col h-full text-2xl font-bold relative portrait:w-full portrait:h-[400px]">
-    <div class="absolute top-0 z-[2] flex justify-center items-center gap-4 w-full pb-4 backdrop-blur-[2px]">
-      <h2 @click="updateScroll" class="text-center text-lg">{{ $t('message.chatTitle') }}</h2>
+    <div class="absolute top-0 z-[2] flex justify-center items-center gap-4 w-full pb-2 backdrop-blur-[2px]">
+      <h2 @click="updateScroll" class="text-center text-base">{{ $t('message.chatTitle') }}</h2>
     </div>
     <div ref="messageScrollRef" class="min-h-[100px] flex-1 overflow-hidden">
       <MessageList id="agentMessageList" class="pt-16 pb-28" :agentMessageList="agentMessageList"
         @imageLoad="handleImageLoad" />
     </div>
     <div v-if="props.isMicrophone" class="absolute bottom-0 z-[2] w-full backdrop-blur-[2px] flex justify-center">
-      <div class="w-full h-[50px] p-2 bg-white/60 rounded-lg flex items-center">
-        <!-- <input v-model="sendText" placeholder="请输入"
-          class="absolute -top-10 left-2 text-base border-2 outline-none text-white flex-1 placeholder:text-sm w-0"
-          type="text"> -->
+      <!-- <div class="w-full h-[30px] p-2 bg-white/60 rounded-lg flex items-center">
         <input v-model="sendText" :placeholder="t('message.chatPlaceholder')"
           class="text-base outline-none text-gray-600 flex-1 placeholder:text-sm" type="text">
         <div class="flex gap-2 items-center">
           <div @click="handleRecord" class="rounded-full p-1" :class="isRecording ? 'bg-[#6860ff]/50' : ''">
             <div class="rounded-full p-1" :class="isRecording ? 'bg-[#6860ff]' : ''">
-              <Voice class="size-6" :class="isRecording ? 'fill-white' : 'fill-gray-600'" />
+              <Voice class="size-5" :class="isRecording ? 'fill-white' : 'fill-gray-600'" />
             </div>
           </div>
           <div @click="handleSendMessage(sendText)">
-            <Send class="size-6 fill-gray-600" />
+            <Send class="size-5 fill-gray-600" />
           </div>
         </div>
-      </div>
-      <!-- <div class="relative">
+      </div> -->
+      <div class="relative">
         <div @touchstart.passive="handleRecorderTouchstart" @touchend.passive="handleRecorderTouchend"
           @contextmenu="(e) => { e.preventDefault() }"
           class="relative z-20 size-[70px] rounded-full bg-linear-to-r from-[#6886fc] to-[#6958fb] flex items-center justify-center">
@@ -37,7 +34,7 @@
         <div class="absolute inset-0 size-[70px] rounded-full bg-black/10 z-10"
           :class="isAnimating ? 'recorder-bg-2' : ''">
         </div>
-      </div> -->
+      </div>
     </div>
     <audio ref="audioPlayRef" @ended="isAudioPlay = false" class="hidden" controls></audio>
   </div>
@@ -50,9 +47,9 @@ import type { Product, Shop, MessageText } from '@/types/types'
 import { TaskType, IntentType, MessageType } from '@/types/enum'
 import { sendIntent } from '@/utils/AIOSService'
 import MessageList from '@/components/MessageList.vue'
-// import Microphone from '@/assets/svg/microphone.svg'
-import Send from '@/assets/svg/send.svg'
-import Voice from '@/assets/svg/voice.svg'
+import Microphone from '@/assets/svg/microphone.svg'
+// import Send from '@/assets/svg/send.svg'
+// import Voice from '@/assets/svg/voice.svg'
 import { getTimeGreeting } from '@/utils'
 import { useMessageHandler, useBScroll, useVolumeMonitoring, useAudioConversion } from '@/composables/index'
 const props = withDefaults(defineProps<{
@@ -363,7 +360,6 @@ const handleRecorderData = async (blob: Blob) => {
   // 调用语音识别接口
   const result: string = await arsApi(blob)
   sendText.value = result
-  return
   agentMessageList.push(
     {
       text: result, type: 'user'
@@ -375,9 +371,6 @@ const handleRecorderData = async (blob: Blob) => {
   if (currentIntentType.value === IntentType.ASR) {
     sendIntent(IntentType.ASR, { asrText: result })
     router.currentRoute.value.query = {}
-    /* router.replace({
-      query: {},
-    }) */
   } else if (currentIntentType.value === IntentType.USERANSWER) {
     sendIntent(IntentType.USERANSWER, { userAnswer: result, id: currentIntentId.value, token: currentIntenToken.value })
     // 恢复为ASR
@@ -458,19 +451,14 @@ const processPlayQueue = async () => {
       const res = await ttsApi(item.msg)
       await handleAudioPlay(res.file)
       // 处理用户输入
-      /* if (item.taskType === TaskType.USER) {
+      if (item.taskType === TaskType.USER) {
         handleRecorderTouchstart()
         startVolumeDetection()
-      } */
+      }
       if (isProcessing.value && item.msg === currentIntentMsg.value) break
     }
   }
   isPlaying.value = false
-  if ('GET_USER_ANSWER' === TaskType.USER) {
-    return
-    handleRecorderTouchstart()
-    startVolumeDetection()
-  }
 }
 
 /**
@@ -498,6 +486,7 @@ const sendText = ref<string>('')
  * 发送消息
  * @param text 
  */
+// @ts-ignore
 const handleSendMessage = (text: string) => {
   if (!text) return
   sendText.value = ''
@@ -529,6 +518,7 @@ const handleSendMessage = (text: string) => {
 /**
  * 录音按钮点击事件(开始/结束录音)
  */
+// @ts-ignore
 const handleRecord = () => {
   isRecording.value = !isRecording.value
   if (isRecording.value) {
@@ -536,12 +526,32 @@ const handleRecord = () => {
       audioPlayRef.value.pause()
     }
     isProcessing.value = false
-    audioContext.value?.resume().then(() => {
-      console.log('开始录音', mediaRecorder.value);
-      mediaRecorder.value?.start()
-    })
+    if (hasRecorderPermission.value) {
+      // 恢复音频上下文
+      audioContext.value?.resume().then(() => {
+        mediaRecorder.value?.start()
+      })
+    } else {
+      fetch('http://127.0.0.1:8081/start_record', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+    }
   } else {
-    mediaRecorder.value?.stop()
+    if (hasRecorderPermission.value) {
+      mediaRecorder.value?.stop()
+    } else {
+      fetch('http://127.0.0.1:8081/stop_record', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }).then(res => res.blob()).then(blob => {
+        handleRecorderData(blob)
+      })
+    }
   }
 }
 </script>

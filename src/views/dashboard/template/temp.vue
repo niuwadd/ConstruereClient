@@ -8,7 +8,8 @@
   </div>
 </template>
 <script lang="ts" setup>
-const props = defineProps<{ title: string, value: number, unit: string, icon: string }>();
+  import type { Component } from 'vue';
+const props = defineProps<{ title: string, value: number, unit: string, icon: string | Component }>();
 const { title, value, unit, icon } = props;
 </script>
 <style lang="scss" scoped></style>

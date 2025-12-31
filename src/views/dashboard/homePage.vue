@@ -5,7 +5,7 @@
       <!-- 单一容器，使用 grid 布局 -->
       <div v-auto-animate class="grid grid-cols-4 grid-rows-3 gap-4 size-full">
         <div v-for="(card) in animateCards" :key="card.id" :class="[
-          'rounded-2xl bg-white/25 p-4 transition-all duration-300',
+          'rounded-2xl bg-white/25 p-2 transition-all duration-300',
         ]" :style="getCardGridStyle(card)">
           <!-- <h2 class="pb-2 font-bold text-lg">{{ card.title }}</h2> -->
           <component :is='card.component' v-bind="card.componentProps"></component>
@@ -131,7 +131,7 @@ watch(() => messageStore.messageList.length, () => {
 watch(() => messageStore.currentShowRigthData, (value) => {
   if (!value) return
   console.log(currentToken.value, value.token);
-  if (currentToken.value && currentToken.value !== value.token) return
+  if ((currentToken.value && currentToken.value !== value.token) || (!currentToken.value && value.background)) return
   handleShowRight(value)
 })
 watch(() => messageStore.currentMessage, (value) => {
@@ -331,22 +331,37 @@ const allCards = reactive<TemplateCard[]>([
     row: [1, 2],
     component: CalendarComponent,
   },
-  /* {
-    id: '6',
-    column: [3, 1],
-    row: [1, 2],
-    component: BackgroundComponent,
-    componentProps: {
-      currentMessage: {},
-    }
-  }, */
   {
     id: '4',
     column: [3, 2],
     row: [3, 1],
     component: BalendarComponent,
   },
-
+  /* {
+    id: '6',
+    column: [3, 1],
+    row: [1, 3],
+    component: NavigationComponent,
+    componentProps: {
+      location: '3150 Paradise Rd, Las Vegas',
+      des: 'University Medical center of Southern Nevada'
+    },
+  } */
+  /* {
+    id: '4',
+    column: [3, 1],
+    row: [2, 1],
+    component: PhotoComponent,
+    componentProps: {
+      photoList: [
+        {
+          description: 'dsadasdasdadds asdsadsadsadsaas asdasdasdsadasdasdasd321321rafsfdsfdsfsdfs sdf dsf sdf sf sdf sd fdsfsdfdsfsdffsdf',
+          image: 'https://picsum.photos/200/300',
+          title: ''
+        }
+      ]
+    },
+  }, */
 ])
 const agentCards = reactive<TemplateCard[]>([
   {

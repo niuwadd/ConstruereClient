@@ -3,7 +3,7 @@
     <div class="size-full overflow-auto">
       <!--  :class="getGridCols" -->
       <div class="w-full grid grid-cols-2 gap-4">
-        <div class="flex flex-col h-[calc(100vh-340px)]" @click="router.replace({
+        <div class="flex flex-col h-[calc(100vh-250px)]" @click="router.replace({
           path: '/dashboard/homePage',
           query: {
             id: item.id as string
