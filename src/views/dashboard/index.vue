@@ -37,7 +37,7 @@ const changeMode = (e: Event) => {
 </script>
 <style lang="scss" scoped>
 .dashboard {
-  background-image: url('@/assets/image/banner.jpg');
+  background-image: url('@/assets/image/banner_3.jpg');
   background-size: cover;
 }
 </style>

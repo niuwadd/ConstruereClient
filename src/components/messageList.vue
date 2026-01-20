@@ -71,7 +71,7 @@
         <div v-else-if="item.messageType === MessageType.MARKDOWN && typeof item.text === 'string'">
           <MdPreview class="px-2 bg-[#f8f8f6]!" v-model="item.text" />
         </div>
-        <pre v-else class="whitespace-break-spaces font-[auto] text-sm">{{ item.text }}</pre>
+        <pre v-else class="whitespace-break-spaces break-all font-[auto] text-sm">{{ item.text }}</pre>
       </div>
     </template>
   </div>

@@ -47,7 +47,7 @@ const messageStore = useMessageStore()
 const ChatComponent = markRaw(Chat)
 const TempComponent = markRaw(Temp)
 const CalendarComponent = markRaw(Calendar)
-const BalendarComponent = markRaw(Battery)
+const BatteryComponent = markRaw(Battery)
 const PhotoComponent = markRaw(Photo)
 const ShopComponent = markRaw(Shop)
 const NavigationComponent = markRaw(Navigation)
@@ -130,7 +130,6 @@ watch(() => messageStore.messageList.length, () => {
 // 监听ShowRigth
 watch(() => messageStore.currentShowRigthData, (value) => {
   if (!value) return
-  console.log(currentToken.value, value.token);
   if ((currentToken.value && currentToken.value !== value.token) || (!currentToken.value && value.background)) return
   handleShowRight(value)
 })
@@ -335,7 +334,7 @@ const allCards = reactive<TemplateCard[]>([
     id: '4',
     column: [3, 2],
     row: [3, 1],
-    component: BalendarComponent,
+    component: BatteryComponent,
   },
   /* {
     id: '6',

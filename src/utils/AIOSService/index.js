@@ -1,7 +1,6 @@
 import Thrift from './thrift'
 import aios from './aios_service_types'
 import { reactive } from 'vue'
-import { log } from 'three/tsl'
 import { useMessageStore } from '@/store/message'
 import { AppName, TaskType } from '@/types/enum'
 let ws = null
@@ -175,8 +174,6 @@ function handleSocketMessage(message) {
       if (app !== AppName.GREETINGS) {
         messageStore.addApp(app, token)
       }
-      // console.log(messageStore.messageList)
-      // console.log(messageStore.backgroundTokens)
     }
     switch (type) {
       case TaskType.TTS:
@@ -200,6 +197,7 @@ function handleSocketMessage(message) {
         }
         break */
       case TaskType.DONE:
+        console.log('当前开启的agent', messageStore.messageList)
         /* if (messageStore) {
           messageStore.clearMessage(token)
         } */

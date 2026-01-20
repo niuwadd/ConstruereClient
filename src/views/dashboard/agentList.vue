@@ -1,8 +1,8 @@
 <template>
-  <div class="size-full p-10">
+  <div class="size-full py-10">
     <div class="size-full overflow-auto">
       <!--  :class="getGridCols" -->
-      <div class="w-full grid grid-cols-2 gap-4">
+      <div class="w-full grid grid-cols-2 gap-4 px-10">
         <div class="flex flex-col h-[calc(100vh-250px)]" @click="router.replace({
           path: '/dashboard/homePage',
           query: {
@@ -75,11 +75,22 @@ const setScrollRef = (el: HTMLElement | null, id: string) => {
     }
   })
 }
+/**
+ * 初始化滚动
+ */
+const initBScroll = () => {
+  messageStore.messageList.forEach((item: any) => {
+    updateScroll(item.id)
+  })
+}
+/**
+ * 更新滚动
+ * @param id 滚动实例的 ID
+ */
 const updateScroll = (id: string) => {
   nextTick(() => {
     if (scrollInstances.has(id)) {
       const bs = scrollInstances.get(id)
-      console.log(bs);
       bs.refresh()
       bs.scrollTo(0, bs.maxScrollY, 300)
     }
@@ -96,7 +107,7 @@ const clearMessage = (id: string) => {
 }) */
 
 onMounted(() => {
-
+  initBScroll()
 })
 // 组件销毁前清理滚动实例
 onBeforeUnmount(() => {

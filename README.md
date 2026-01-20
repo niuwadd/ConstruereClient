@@ -21,7 +21,6 @@ construere-client/
 ├── src/                    # 源代码目录
 │   ├── assets/            # 静态资源
 │   ├── components/        # 公共组件
-│   ├── install/           # 安装配置
 │   ├── router/            # 路由配置
 │   ├── types/             # 类型定义
 │   ├── utils/             # 工具函数

@@ -38,8 +38,8 @@ export const useMessageStore = defineStore('message', {
         isAnswer: true,
         list: [
           {
-            text: 'Construere：Unlock Your Hardware，Connect Everything',
-            msg: 'Construere：Unlock Your Hardware，Connect Everything',
+            text: 'Construere：Unlock Your Hardware，Connect Everything/dasijfdsoi3213u21io3u123u12io3u12c3n12oi3ucnoi12nco12i3ucno213cnu2o13cun21o3cun21o3c123nco12',
+            msg: 'Construere：Unlock Your Hardware，Connect Everything/dasijfdsoi3213u21io3u123u12io3u12c3n12oi3ucnoi12nco12i3ucno213cnu2o13cun21o3cun21o3c123nco12',
             type: 'agent',
           },
           {
@@ -69,6 +69,41 @@ export const useMessageStore = defineStore('message', {
         id: '2',
         isAnswer: false,
         list: [
+          {
+            text: 'ChatGPT：Unlock Your Hardware，Connect Everything',
+            msg: 'ChatGPT：Unlock Your Hardware，Connect Everything',
+            type: 'agent',
+          },
+          {
+            text: 'ChatGPT：Unlock Your Hardware，Connect Everything',
+            msg: 'ChatGPT：Unlock Your Hardware，Connect Everything',
+            type: 'agent',
+          },
+          {
+            text: 'ChatGPT：Unlock Your Hardware，Connect Everything',
+            msg: 'ChatGPT：Unlock Your Hardware，Connect Everything',
+            type: 'agent',
+          },
+          {
+            text: 'ChatGPT：Unlock Your Hardware，Connect Everything',
+            msg: 'ChatGPT：Unlock Your Hardware，Connect Everything',
+            type: 'agent',
+          },
+          {
+            text: 'ChatGPT：Unlock Your Hardware，Connect Everything',
+            msg: 'ChatGPT：Unlock Your Hardware，Connect Everything',
+            type: 'agent',
+          },
+          {
+            text: 'ChatGPT：Unlock Your Hardware，Connect Everything',
+            msg: 'ChatGPT：Unlock Your Hardware，Connect Everything',
+            type: 'agent',
+          },
+          {
+            text: 'ChatGPT：Unlock Your Hardware，Connect Everything',
+            msg: 'ChatGPT：Unlock Your Hardware，Connect Everything',
+            type: 'agent',
+          },
           {
             text: 'ChatGPT：Unlock Your Hardware，Connect Everything',
             msg: 'ChatGPT：Unlock Your Hardware，Connect Everything',
@@ -192,9 +227,7 @@ export const useMessageStore = defineStore('message', {
       }
     },
     addApp(appName: string, id: string) {
-      const messageFind = this.messageList.find(
-        (item) => item.appName === appName
-      )
+      const messageFind = this.messageList.find((item) => item.id === id)
       if (messageFind) {
         messageFind.id = id
       } else {
@@ -218,7 +251,7 @@ export const useMessageStore = defineStore('message', {
     },
     clearMessage(id?: string) {
       if (!id) {
-        console.log('清除所有数据');
+        console.log('清除所有数据')
         // this.messageList = []
         // this.messageList.splice(0, this.messageList.length)
       } else {

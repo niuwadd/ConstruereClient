@@ -33,6 +33,7 @@ onMounted(async () => {
         // 设置地图容器id
         zoom: 11, // 初始化地图级别
         center: [116.397428, 39.90923], // 初始化地图中心点位置
+        mapStyle: "amap://styles/dark",
       });
       const points = [
         { keyword: startPoint?.value, city: '成都' }, //起始点坐标

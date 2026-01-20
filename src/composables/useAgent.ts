@@ -61,6 +61,7 @@ export default function useAgent() {
 
   const currentAgent = ref<any | null>(agentList[0])
   // 初始化3D模型
+  // @ts-ignore
   const init3DModel = () => {
     if (canvasRef.value) {
       // 5. 响应窗口大小变化
@@ -187,8 +188,6 @@ export default function useAgent() {
     }
     for (const agent of agentList) agent.isActive = false
     currentAgent.value.isActive = true
-    return
-    init3DModel()
   }
 
   return {

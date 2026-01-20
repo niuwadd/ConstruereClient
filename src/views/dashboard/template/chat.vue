@@ -25,18 +25,18 @@
       <div class="relative">
         <div @touchstart.passive="handleRecorderTouchstart" @touchend.passive="handleRecorderTouchend"
           @contextmenu="(e) => { e.preventDefault() }"
-          class="relative z-20 size-[70px] rounded-full bg-linear-to-r from-[#6886fc] to-[#6958fb] flex items-center justify-center">
-          <Microphone class="scale-65 relative z-10" />
+          class="relative z-20 size-[60px] rounded-full bg-linear-to-r from-[#6886fc] to-[#6958fb] flex items-center justify-center">
+          <Microphone class="w-[40px] relative z-10" />
         </div>
-        <div class="absolute inset-0 size-[70px] rounded-full bg-black/20 z-10 transition-all duration-300"
+        <div class="absolute inset-0 size-[60px] rounded-full bg-black/20 z-10 transition-all duration-300"
           :class="isAnimating ? 'recorder-bg-1' : ''">
         </div>
-        <div class="absolute inset-0 size-[70px] rounded-full bg-black/10 z-10"
+        <div class="absolute inset-0 size-[60px] rounded-full bg-black/10 z-10"
           :class="isAnimating ? 'recorder-bg-2' : ''">
         </div>
       </div>
     </div>
-    <audio ref="audioPlayRef" @ended="isAudioPlay = false" class="hidden" controls></audio>
+    <audio ref="audioPlayRef" class="hidden" @ended="isAudioPlay = false" controls></audio>
   </div>
 </template>
 <script lang="ts" setup>
@@ -399,7 +399,6 @@ const handlePlayQueue = async (queueData: Queue): Promise<void> => {
   }
   // 将需要语音播报的内容加入播放队列（仅语音需要的内容）
   if ((msg || msgType === MessageType.IMAGE)) {
-    console.log('语音队列-------', playQueue);
     if (!isPlaying.value) {
       isPlaying.value = true
       if (!isProcessing.value || msg === currentIntentMsg.value) {
