@@ -85,6 +85,13 @@ const messages = {
       agentMode: '智能体模式',
       aiosMode: 'AIOS模式',
     },
+    layout: {
+      cardStacking: '卡片堆叠布局',
+      horizontalScroll: '水平滚动布局',
+      slideShow: '幻灯片布局',
+      timeLine: '时间线布局',
+      waterfallFlow: '瀑布流布局'
+    }
   },
   en: {
     message: {
@@ -158,6 +165,13 @@ const messages = {
       agentMode: 'Agent Mode',
       aiosMode: 'AIOS Mode',
     },
+    layout: {
+      cardStacking: 'Card Stacking',
+      horizontalScroll: 'Horizontal Scroll',
+      slideShow: 'Slide Show',
+      timeLine: 'Time Line',
+      waterfallFlow: 'Waterfall Flow'
+    }
   },
 }
 export { router }

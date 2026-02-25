@@ -171,7 +171,8 @@ function handleSocketMessage(message) {
       if (background) {
         messageStore.addBackground(token)
       }
-      if (app !== AppName.GREETINGS) {
+      //  !== AppName.GREETINGS
+      if (app) {
         messageStore.addApp(app, token)
       }
     }

@@ -2,11 +2,11 @@
   <div class="h-[calc(100%-24px)] flex flex-col gap-2 flex-1">
     <MapContainer :startPoint="location" :endPoint="des" @updateDistance="updateDistance" @updateTime="updateTime"
       class="rounded-xl overflow-hidden" />
-    <div class="bg-gray-500 rounded-xl p-2 text-base">
+    <!-- <div class="bg-gray-500 rounded-xl p-2 text-base">
       <p>{{ t('unit.distance') }}：</p>
       <p class="break-all">{{ distance }}</p>
       <p class="break-all">{{ time }}</p>
-    </div>
+    </div> -->
   </div>
 </template>
 <script setup lang="ts">

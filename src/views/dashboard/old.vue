@@ -1,910 +1,651 @@
+<!-- 卡片马赛克布局 -->
 <template>
-  <div class="dashboard size-full flex gap-4 p-10 portrait:flex-col">
-    <div :class="hiddenCard ? '' : 'flex-1'"
-      class="flex flex-col w-[340px] rounded-2xl bg-white/25 text-2xl font-bold relative portrait:w-full portrait:h-[400px]">
-      <div class="absolute top-0 z-[2] flex justify-center items-center gap-4 w-full py-4 backdrop-blur-[2px]">
-        <h2 class="text-center text-lg">{{ $t('message.chatTitle') }}</h2>
-      </div>
-      <div ref="messageScrollRef" class="min-h-[200px] flex-1 px-8 overflow-hidden">
-        <MessageList id="agentMessageList" class="pt-16 pb-28" :agentMessageList="agentMessageList"
-          @imageLoad="handleImageLoad" />
-      </div>
-      <div class="absolute bottom-0 z-[2] w-full py-4 backdrop-blur-[2px] flex justify-center">
-        <div class="relative">
-          <div @touchstart.passive="handleRecorderTouchstart" @touchend.passive="handleRecorderTouchend"
-            @contextmenu="(e) => { e.preventDefault() }"
-            class="relative z-20 size-[70px] rounded-full bg-linear-to-r from-[#6886fc] to-[#6958fb] flex items-center justify-center">
-            <Microphone class="scale-65 relative z-10" />
-          </div>
-          <div ref="recorderBgRef1"
-            class="absolute inset-0 size-[70px] rounded-full bg-black/20 z-10 transition-all duration-300"
-            :class="isAnimating ? 'recorder-bg-1' : ''">
-          </div>
-          <div ref="recorderBgRef2" class="absolute inset-0 size-[70px] rounded-full bg-black/10 z-10"
-            :class="isAnimating ? 'recorder-bg-2' : ''">
-          </div>
+  <div class="size-full flex flex-col gap-6 p-10">
+    <!-- <component :is='layoutComponent'></component>
+    <div class="absolute top-2 right-24 text-right">
+      <Menu as="div" class="relative inline-block text-left">
+        <MenuButton
+          class="inline-flex w-full justify-center rounded-md text-sm font-medium text-white hover:bg-black/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75">
+          <MenuSvg class="size-[24px] fill-white" />
+        </MenuButton>
+        <transition enter-active-class="transition duration-100 ease-out"
+          enter-from-class="transform scale-95 opacity-0" enter-to-class="transform scale-100 opacity-100"
+          leave-active-class="transition duration-75 ease-in" leave-from-class="transform scale-100 opacity-100"
+          leave-to-class="transform scale-95 opacity-0">
+          <MenuItems
+            class="absolute z-10 right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none">
+            <div class="p-1">
+              <MenuItem v-for="item in layoutList" :key="item.value" v-slot="{ active }">
+              <button :class="[
+                active ? 'bg-linear-to-r from-[#6886fc] to-[#6958fb] text-white' : 'text-gray-900',
+                'group flex w-full items-center rounded-md px-2 py-2 text-sm',
+              ]" @click="toggleLayout(item.value)">
+                {{ item.label }}
+              </button>
+              </MenuItem>
+            </div>
+          </MenuItems>
+        </transition>
+      </Menu>
+    </div> -->
+    <div ref="templateCardRef" class="flex-1">
+      <div v-auto-animate class="grid grid-cols-4 grid-rows-3 gap-4 size-full text-white">
+        <div v-for="(card) in animateCards" :key="card.id" :class="[
+          'rounded-3xl bg-white/10 border border-white/10',
+          'p-3 shadow-md backdrop-blur-xl',
+          'transition-all duration-300 hover:shadow-2xl hover:bg-white/15',
+        ]" :style="getCardGridStyle(card)">
+          <component :is="card.component" v-bind="card.componentProps"></component>
         </div>
       </div>
-    </div>
-    <div v-show="hiddenCard" ref="templateCardRef" class="flex flex-1 gap-4 text-white">
-      <!-- 单一容器，使用 grid 布局 -->
-      <div v-auto-animate class="grid grid-cols-1 grid-rows-4 gap-4 size-full md:grid-cols-2 portrait:grid-rows-2">
-        <div v-for="(card, index) in allCards" :key="card.id" :class="[
-          'rounded-2xl bg-white/25 p-4 transition-all duration-300',
-        ]" :style="getCardGridStyle(card, index)">
-          <!-- <h2 class="pb-2 font-bold text-lg">{{ card.title }}</h2> -->
-          <component :is='card.component' v-bind="card.componentProps"></component>
-        </div>
-      </div>
-    </div>
-    <audio ref="audioPlayRef" @ended="isAudioPlay = false" class="hidden" controls></audio>
-    <div @click="router.push('/')" class="absolute top-2 right-2 rounded-3xl text-white text-sm ">
-      {{ $t('mode.agentMode') }}
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, markRaw, onMounted, watchEffect, reactive, watch, computed, type Component } from 'vue'
-import Examination_0 from '@/assets/image/examination_0.png'
-import Temperature_0 from '@/assets/image/temperature_0.png'
-import Emergency_number_0 from '@/assets/image/emergency_number_0.png'
-import Hospital_0 from '@/assets/image/hospital_0.png'
-import Fitness_band_0 from '@/assets/image/fitness_band_0.png'
-import Camera_1 from '@/assets/image/camera_1.png'
-import Navigation_1 from '@/assets/image/navigation_1.png'
-import Phone_1 from '@/assets/image/phone_1.png'
-import Component_1 from '@/assets/image/component.png'
-import Car from '@/assets/image/car.png'
+import { ref, markRaw, onMounted, reactive, watch, computed, type Component } from 'vue'
 // 工具
-import { sendIntent, socketState } from '@/utils/AIOSService'
-import { getTimeGreeting } from '@/utils'
+import { sendIntent } from '@/utils/AIOSService'
 import autoAnimate from "@formkit/auto-animate"
+import { useMessageStore } from '@/store/message'
 import { useI18n } from 'vue-i18n'
+import { useToast } from "vue-toastification"
+
 // 组件
-import MessageList from '@/components/MessageList.vue'
-import Restaurants from './template/restaurants.vue'
+import Chat from './template/chat.vue'
+import Temp from './template/temp.vue'
 import Photo from './template/photo.vue'
+import Shop from './template/shop.vue'
 import Navigation from './template/navigation.vue'
 import Music from './template/music.vue'
-// import Weather from './template/weather.vue'
-import ShopCom from './template/shop.vue'
-import ProductCom from './template/product.vue'
-import Microphone from '@/assets/svg/microphone.svg'
-import type { Hardware, Product, Shop, MessageText } from '@/types/types'
-import { TaskType, IntentType, ProviderType, MessageType, ShowRightType, modeType } from '@/types/enum'
-import router from '@/router'
-// 逻辑
-import { useMessageHandler, useBScroll, useScreenOrientation, useAudioConversion, useVolumeMonitoring } from '@/composables/index'
+import Calendar from './template/calendar.vue'
+import Battery from './template/battery.vue'
+// import CardStacking from './layout/cardStacking.vue'
+// import HorizontalScroll from './layout/horizontalScroll.vue'
+// import Slideshow from './layout/slideshow.vue'
+// import TimeLine from './layout/timeLine.vue'
+// import WaterfallFlow from './layout/waterfallFlow.vue'
+// import Background from './template/background.vue'
+import Fan from "@/assets/svg/fan.svg";
+import BloodSugar from "@/assets/svg/blood-sugar.svg";
+import { IntentType, modeType, ShowRightType } from '@/types/enum'
+import { useRouter } from "vue-router"
+import type { Product, Restaurant } from '@/types/types'
+// import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
+// import MenuSvg from '@/assets/svg/menu.svg'
 const { t } = useI18n()
-const createMessageHandler = useMessageHandler()
-const {
-  agentMessageList,
-  handleTTSMessage,
-  handleDialogueList
-} = createMessageHandler(t)
-// bs库滚动处理
-const { messageScrollRef, initBScroll, updateScroll } = useBScroll()
-// 屏幕方向处理
-const { screenOrientation, mlScreen } = useScreenOrientation()
-// 音频转换处理
-const { ttsApi, arsApi } = useAudioConversion()
-
+// 逻辑
+const messageStore = useMessageStore()
 // 标记组件为非响应式
-// const photoComponent = markRaw(Photo)
+const ChatComponent = markRaw(Chat)
+const TempComponent = markRaw(Temp)
+const CalendarComponent = markRaw(Calendar)
+const BatteryComponent = markRaw(Battery)
+const PhotoComponent = markRaw(Photo)
+const ShopComponent = markRaw(Shop)
 const NavigationComponent = markRaw(Navigation)
-// const WeatherComponent = markRaw(Weather)
 const MusicComponent = markRaw(Music)
-const ShopComponent = markRaw(ShopCom)
-const ProductComponent = markRaw(ProductCom)
-const RestaurantsComponent = markRaw(Restaurants)
-// 节点
-const recorderBgRef1 = ref<HTMLElement | null>(null)
-const recorderBgRef2 = ref<HTMLElement | null>(null)
-const audioPlayRef = ref<HTMLAudioElement | null>(null)
+
+// const BackgroundComponent = markRaw(Background)
+const toast = useToast();
+
+const router = useRouter()
 const templateCardRef = ref<HTMLElement | null>(null)
-const pressTimer = ref<number | null>(null)
-// 播放控制
-const isAnimating = ref<boolean>(false)
-const isMonitoring = ref<boolean>(true)
+const animateCards = computed(() => {
+  return router.currentRoute.value.query.id ? agentCards : allCards
+})
+const currentToken = computed(() => {
+  return router.currentRoute.value.query.id
+})
 
-// 是否播放
-const isAudioPlay = ref<boolean>(false)
-// 硬件列表
-const hardwareList = reactive<Hardware[]>([
-  {
-    name: 'CAMERA',
-    icon: Camera_1,
-    isActive: false,
-  },
-  {
-    name: 'CARSTATE',
-    icon: Car,
-    isActive: false,
-  },
-  {
-    name: 'NAVIGATING',
-    icon: Navigation_1,
-    isActive: false,
-  },
-  {
-    name: '电话',
-    icon: Phone_1,
-    isActive: false,
-  },
-  {
-    name: '菜单',
-    icon: Component_1,
-    isActive: false,
-  }
-])
-const hardwareDataList = reactive<Hardware[]>([
-  {
-    name: '摄像头',
-    icon: Examination_0,
-  },
-  {
-    name: '运动手环',
-    icon: Fitness_band_0,
-  },
-  {
-    name: '测量体温',
-    icon: Temperature_0,
-  },
-  {
-    name: '打急救电话',
-    icon: Emergency_number_0,
-  },
-  {
-    name: '导航',
-    icon: Hospital_0,
-  }
-])
-// Intent相关
-// 当前Intent类型
-const currentIntentType = ref<IntentType>(IntentType.ASR)
-// 当前Intent的id
-const currentIntentId = ref<string>('')
-// 当前Intent的token
-const currentIntenToken = ref<string>('')
-// 当前Intent的消息
-const currentIntentMsg = ref<string>('')
-
-const hiddenTemplate = ref<boolean>(true)
 onMounted(() => {
-  // 开启音频媒体流
-  handleRecorder()
-  // 初始化滚动
-  initBScroll()
-  // 发送一个greetings
-  sendIntent(IntentType.GREETINGS, { greetings: '' })
   // 发送一个modeType
   sendIntent(IntentType.MODETYPE, { modeType: modeType.AIOSMODE })
+  if (!currentToken.value) {
+    // 发送一个greetings
+    // 启动后台运行
+    setTimeout(() => {
+      sendIntent(IntentType.GREETINGS, { greetings: '' })
+    }, 100);
+    setTimeout(() => {
+      sendIntent(IntentType.BACKGROUNDRUNNING, { backgroundRunning: '' })
+    }, 200);
+  } else {
+    const messageFind = messageStore.messageList.find(item => item.id === currentToken.value)
+    const showRightDataFind = messageStore.showRightData.find(item => item.id === currentToken.value)
+    if (messageFind) {
+      messageFind.list?.forEach(item => {
+        animateCards.value[0].componentProps.message.push(item)
+      })
+    }
+    if (showRightDataFind) {
+      showRightDataFind.list.forEach(v => {
+        handleShowRight(v)
+      })
+    }
+  }
   if (templateCardRef.value) autoAnimate(templateCardRef.value)
-  setTimeout(() => {
-    return
-    handleAgentMessageListChange()
-  }, 1000)
-  const resize = new ResizeObserver((entries) => {
-    if (entries[0].contentRect.width <= 500) {
-      hiddenTemplate.value = false
-    } else {
-      hiddenTemplate.value = true
-    }
-  })
-  resize.observe(templateCardRef.value!)
 })
 
-// 模拟agentMessageList变化
-const handleAgentMessageListChange = () => {
-  agentMessageList.push(
-    {
-      text: '测试测试',
-      type: 'agent',
-      messageType: MessageType.TEXT,
-    },
-    {
-      text: '测试测试',
-      type: 'agent',
-      messageType: MessageType.TEXT,
-    },
-    {
-      text: '测试测试',
-      type: 'agent',
-      messageType: MessageType.TEXT,
-    },
-    {
-      text: 'https://picsum.photos/200/300',
-      type: 'agent',
-      messageType: MessageType.IMAGE,
-    },
-    {
-      text: 'https://picsum.photos/300/200',
-      type: 'agent',
-      messageType: MessageType.IMAGE,
-    },
-    {
-      text: 'dasdsadsad',
-      type: 'user',
-      messageType: MessageType.TEXT,
+/* const viewStore = () => {
+  console.log(messageStore.messageList);
+  console.log(messageStore.showRightData);
+  return
+  const randomInt = Math.floor(Math.random() * 3) + 1;
+  const arr = [CardSize.SMALL, CardSize.MEDIUM, CardSize.LARGE]
+  pushTemplateCard({
+    id: 'auto-' + Date.now(),
+    size: arr[randomInt],
+    component: TempComponent,
+    componentProps: {
+      icon: Fan,
+      title: '新温度',
+      value: 22.5,
+      unit: '℃'
     }
-  )
-}
-
-watchEffect(async () => {
-  try {
-    if (!socketState.message) return
-    console.log(JSON.parse(socketState.message))
-    const { type, msg, id, token, nodeTitle, content, srType, imageUrl } = JSON.parse(socketState.message)
-    const tokenId = id + token
-    // 如果消息为空，不执行后面代码
-    if (msg === '') return
-    // 当接收到不同类型时的处理
-    switch (type) {
-      case TaskType.TTS:
-        // 正则表达式规则，以菜单:`开头，以`结尾, 播放的消息文本
-        let arsMessage = ''
-        // 显示的消息文本
-        let arsViewMessage = ''
-        const { type, message } = handleTTSMessage(msg)
-        switch (type) {
-          case MessageType.JSON_MENU:
-            const { data: productData } = JSON.parse(message)
-            arsMessage = productData.shop.productList.map((product: Product) => {
-              const { productName, productPrice } = product
-              return `${productName},${productPrice}元`
-            }).join('。')
-            arsViewMessage = productData.shop.productList
-
-            templateProduct.splice(0, templateProduct.length, ...productData.shop.productList)
-            pushTemplateCard({
-              id: 1,
-              title: t('card.product'),
-              size: 'medium',
-              component: ProductComponent,
-              componentProps: {
-                templateProduct
-              },
-            })
-            break;
-          case MessageType.JSON_RESTAURANT:
-            const { data: shopData } = JSON.parse(message)
-            arsMessage = shopData.shop_list.map((shop: Shop) => {
-              const { shopName, shopDescription } = shop
-              return `${shopName},${shopDescription}`
-            }).join('。')
-            arsViewMessage = shopData.shop_list
-
-            templateShop.splice(0, templateShop.length, ...shopData.shop_list)
-            pushTemplateCard({
-              id: 2,
-              title: t('card.shop'),
-              size: 'medium',
-              component: ShopComponent,
-              componentProps: {
-                templateShop
-              },
-            })
-            break;
-          case MessageType.JSON_RESTAURANT_X:
-            const restaurantData = JSON.parse(message)
-            /* const data = {
-              address: '',
-              logo: '',
-              storeId: '',
-              storeName: ''
-            } */
-            arsViewMessage = restaurantData
-            console.log('餐厅', JSON.parse(message));
-            break
-          case MessageType.USER:
-            const { userId } = JSON.parse(message)
-            arsMessage = `${getTimeGreeting(t)},${userId}`
-            arsViewMessage = `${getTimeGreeting(t)},${userId}`
-            break;
-          case MessageType.WEATHER:
-            const { result: weatherData } = JSON.parse(message)
-            arsMessage = `今天是${weatherData.date}，${weatherData.week}，${weatherData.city}天气${weatherData.weather}`
-            arsViewMessage = `今天是${weatherData.date}，${weatherData.week}，${weatherData.city}天气${weatherData.weather}`
-            templateWeather.value = arsViewMessage
-            break;
-          case MessageType.MARKDOWN:
-            const regex = /notify```\s*([\s\S]*?)```/
-            arsMessage = msg.match(regex)?.[1]
-            arsViewMessage = message
-            break;
-          case MessageType.TEXT:
-            arsMessage = message
-            arsViewMessage = message
-            break;
-        }
-        handlePlayQueue(id, token, arsMessage, arsViewMessage, type)
-        break;
-      case TaskType.PROVIDER:
-        hardwareList.forEach(item => {
-          if (ProviderType[item.name as keyof typeof ProviderType] === msg) {
-            item.isActive = true
-            setTimeout(() => {
-              item.isActive = false
-            }, 5500);
+  })
+  console.log(arr[randomInt - 1]);
+} */
+const filterMessageList = computed(() => {
+  return messageStore.messageList.filter(v => !messageStore.backgroundTokens.includes(v.id))
+})
+// 检测一次，是否关闭默认模板
+watch(() => filterMessageList.value.length, () => {
+  if (filterMessageList.value.length === 1) {
+    allCards.splice(1, allCards.length - 1)
+    allCards[0].row = [1, 3]
+  }
+})
+// 检测多次，是否跳转到agent列表
+watch(() => messageStore.messageList.length, () => {
+  if (filterMessageList.value.length >= 2) {
+    router.push('/dashboard/agentList')
+  }
+})
+// 监听ShowRigth
+watch(() => messageStore.currentShowRigthData, (value) => {
+  if (!value) return
+  if ((currentToken.value && currentToken.value !== value.token) || (!currentToken.value && value.background)) return
+  handleShowRight(value)
+})
+watch(() => messageStore.currentMessage, (value) => {
+  if (!value) return
+  // 判断当前是否有token，如果有表示是从agentList跳转过来的(在跳转过来的agent运行结束后需要清除token)
+  if (currentToken.value && currentToken.value !== value.token) return
+  if (value.background && !currentToken.value) {
+    console.log('背景运行', value);
+    // animateCards.value[4].componentProps.currentMessage = { ...value }
+    toast(value.msg, {
+      timeout: 2000,
+    });
+  } else {
+    animateCards.value[0].componentProps.currentMessage = { ...value }
+  }
+})
+watch(() => messageStore.currentBaseMessage, (value) => {
+  allCards[0].componentProps.currentMessage = { ...value }
+})
+const handleShowRight = (showRigthData: any) => {
+  const { srType, tokenId, token, content, imageUrl, nodeTitle } = showRigthData
+  if (currentToken.value && currentToken.value !== token) return
+  switch (srType) {
+    case ShowRightType.IMAGE:
+      const cardFind = animateCards.value.find(item => item.id.toString() === tokenId)
+      if (cardFind) {
+        cardFind.componentProps.photoList.push(
+          {
+            description: content,
+            image: imageUrl,
+            title: ''
           }
+        )
+      } else {
+        pushTemplateCard({
+          title: nodeTitle,
+          id: tokenId,
+          size: CardSize.SMALL,
+          component: PhotoComponent,
+          componentProps: {
+            photoList: [
+              {
+                description: content,
+                image: imageUrl,
+                title: ''
+              }
+            ]
+          },
         })
-        break;
-      case TaskType.USER:
-        handlePlayQueue(id, token, msg, msg, MessageType.TEXT, TaskType.USER)
-        break
-      case TaskType.SHOWR:
-        switch (srType) {
-          case ShowRightType.IMAGE:
-            const cardFind = allCards.find(item => item.id === tokenId)
-            if (cardFind) {
-              cardFind.componentProps.photoList.push(
-                {
-                  description: "",
-                  image: imageUrl,
-                  title: content
-                }
-              )
-            } else {
-              allCards.push(
-                {
-                  title: nodeTitle,
-                  id: tokenId,
-                  size: 'small',
-                  component: Photo,
-                  componentProps: {
-                    photoList: [
-                      {
-                        description: "",
-                        image: imageUrl,
-                        title: content
-                      }
-                    ]
-                  },
-                }
-              )
+      }
+      break;
+    case ShowRightType.DINNER:
+      const shopData = JSON.parse(content)
+      pushTemplateCard({
+        title: nodeTitle,
+        id: tokenId,
+        size: CardSize.LARGE,
+        component: ShopComponent,
+        componentProps: {
+          templateShop: shopData.data.shop_list
+        },
+      })
+      break;
+    case ShowRightType.MENU:
+      const muneData = JSON.parse(content)
+      pushTemplateCard({
+        title: nodeTitle,
+        id: tokenId,
+        size: CardSize.LARGE,
+        component: ShopComponent,
+        componentProps: {
+          templateShop: muneData.data.shop.productList.map((v: Product) => {
+            return {
+              shopName: v.productName,
+              shopDescription: v.productContent,
+              logo: v.logo
             }
-            break;
-          case ShowRightType.NAVIGATE:
-            const { location, des } = JSON.parse(content)
-            pushTemplateCard({
-              id: token,
-              title: t('card.navigation'),
-              size: 'medium',
-              component: NavigationComponent,
-              componentProps: {
-                location,
-                des
-              },
-            })
-            break
-          case ShowRightType.MUSIC:
-            pushTemplateCard({
-              id: token,
-              title: t('card.music'),
-              size: 'small',
-              component: MusicComponent,
-              componentProps: {
-                musicUrl: content,
-                musicName: ''
-              },
-            })
-            break
-          case ShowRightType.RESTAURANT:
-            pushTemplateCard({
-              id: token,
-              title: t('card.shop'),
-              size: 'medium',
-              component: RestaurantsComponent,
-              componentProps: {
-                restaurantsList: JSON.parse(content)
-              },
-            })
-            break
-        }
-        break
-    }
-    // 图片处理
-    if (nodeTitle === ProviderType.CAMERA && msg.includes(MessageType.IMAGE)) {
-      handlePlayQueue(id, token, '', msg, MessageType.IMAGE)
-    }
-  } catch (error) {
-    console.error('不是一个有效的JSON数据', error)
-    const p = socketState.message.split(',')
-    console.log(p)
-  }
-})
-// 监听消息列表变化
-watch(agentMessageList, () => updateScroll())
-// 监听图片加载完成
-const handleImageLoad = () => updateScroll()
-// 媒体录音
-const mediaRecorder = ref<MediaRecorder | null>(null)
-// 音频上下文
-const audioContext = ref<AudioContext | null>(null)
-// 音频节点
-const analyserNode = ref<AnalyserNode | null>(null)
-// 当前播放状态
-const isPlaying = ref(false)
-// 当前是否在处理播放队列
-const isProcessing = ref(false)
-// 手动中断
-const breakPlayQueue = ref(false)
-interface Queue {
-  id: string,
-  token: string,
-  msg: string,
-  viewMsg: MessageText,
-  msgType: MessageType,
-  taskType: TaskType
-}
-// 播放队列
-const playQueue = reactive<Array<Queue>>([])
-// 显示队列
-const viewQueue = reactive<Array<Queue>>([])
-/**
- * 文本显示队列处理
- * @param msg 播放的文本
- * @param viewMsg 显示的文本
- * @param msgType 消息类型
- * @param intentType 意图类型
- */
-const handlePlayQueue = async (id: string, token: string, msg: string, viewMsg: MessageText, msgType: MessageType = 'text', taskType: TaskType = 'TTS'): Promise<void> => {
-  viewQueue.push({ id, token, msg, viewMsg, msgType, taskType })
-  playQueue.push({ id, token, msg, viewMsg, msgType, taskType })
-  // 立即显示文字内容
-  if ((msg || viewMsg) && !isProcessing.value) {
-    processViewQueue()
-  }
-  // 将需要语音播报的内容加入播放队列（仅语音需要的内容）
-  if ((msg || msgType === MessageType.IMAGE)) {
-    if (!isPlaying.value) {
-      isPlaying.value = true
-      if (!isProcessing.value || msg === currentIntentMsg.value) {
-        await processPlayQueue()
-      }
-    } else {
-      const checkQueue = setInterval(() => {
-        if (!isPlaying.value && playQueue.length === 0) {
-          clearInterval(checkQueue)
-        }
-      }, 100)
-    }
-  }
-}
-/**
- * 播放队列处理
- */
-const processPlayQueue = async () => {
-  while (playQueue.length > 0) {
-    // 检测是否手动中断
-    if (breakPlayQueue.value) break
-    const item = playQueue.shift()
-    if (item && item.msg) {
-      const res = await ttsApi(item.msg)
-      await handleAudioPlay(res.file)
-      // 处理用户输入
-      if (item.taskType === TaskType.USER) {
-        handleRecorderTouchstart()
-        startVolumeDetection()
-      }
-      if (isProcessing.value && item.msg === currentIntentMsg.value) break
-    }
-  }
-  isPlaying.value = false
-}
-/**
- * 显示队列处理
- */
-const processViewQueue = () => {
-  while (viewQueue.length > 0) {
-    const item = viewQueue.shift()
-    if (item) {
-      handleDialogueList(item.viewMsg, item.msgType, item.id, item.token)
-      if (item.msgType === MessageType.IMAGE) {
-        // 给摄像头硬件部分添加图片
-        hardwareDataList[0].data = {
-          type: 'img',
-          value: item.viewMsg as string,
-        }
-      }
-      if (item.taskType === TaskType.USER) {
-        isProcessing.value = true
-        currentIntentId.value = item.id
-        currentIntenToken.value = item.token
-        currentIntentMsg.value = item.viewMsg as string
-        currentIntentType.value = IntentType.USERANSWER
-      }
-      if (isProcessing.value) break
-    }
-  }
-}
-// 处理音频播放
-const handleAudioPlay = (filePath: string): Promise<void> => {
-  return new Promise((resolve) => {
-    if (audioPlayRef.value) {
-      audioPlayRef.value.src = location.origin + '/' + filePath
-      // 监听播放完成事件
-      const onEnded = () => {
-        audioPlayRef.value?.removeEventListener('ended', onEnded)
-        resolve()
-      }
-      // 监听播放暂停
-      const onPause = () => {
-        audioPlayRef.value?.removeEventListener('pause', onPause)
-        resolve()
-      }
-      audioPlayRef.value.addEventListener('ended', onEnded)
-      audioPlayRef.value.addEventListener('pause', onPause)
-      audioPlayRef.value.play().catch((e) => {
-        console.error('播放失败:', e)
-        resolve()
-      })
-    }
-  })
-
-}
-// 是否有录音权限
-const hasRecorderPermission = ref(true)
-// 长按录音按钮
-const handleRecorderTouchstart = () => {
-  // 如果当前是在播放的状态，则暂停播放
-  if (audioPlayRef.value && !audioPlayRef.value.paused) {
-    audioPlayRef.value.pause()
-    // 开始录音时手动中断播放
-    breakPlayQueue.value = true
-    // 在开始播放之前，查看是否需要截断
-    if (currentIntentMsg.value) {
-      const currentIntentMsgIndex = playQueue.findIndex((item) => item.viewMsg === currentIntentMsg.value)
-      playQueue.splice(0, currentIntentMsgIndex + 1)
-    } else {
-      playQueue.splice(0)
-    }
-  }
-  pressTimer.value = setTimeout(() => {
-    isAnimating.value = true
-    isMonitoring.value = true
-    if (hasRecorderPermission.value) {
-      // 恢复音频上下文
-      audioContext.value?.resume().then(() => {
-        mediaRecorder.value?.start()
-      })
-    } else {
-      fetch('http://127.0.0.1:8081/start_record', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+          })
         },
       })
-    }
-  }, 100)
-}
-// 移开录音按钮
-const handleRecorderTouchend = () => {
-  if (pressTimer.value) {
-    isAnimating.value = false
-    isMonitoring.value = false
-    // 恢复自动中断
-    isProcessing.value = false
-    // 恢复手动中断
-    breakPlayQueue.value = false
-    clearTimeout(pressTimer.value)
-    if (hasRecorderPermission.value) {
-      mediaRecorder.value?.stop()
-      stopVolumeDetection()
-    } else {
-      fetch('http://127.0.0.1:8081/stop_record', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      break;
+    case ShowRightType.RESTAURANT:
+      const restaurantData = JSON.parse(content)
+      console.log(restaurantData);
+      pushTemplateCard({
+        title: nodeTitle,
+        id: tokenId,
+        size: CardSize.LARGE,
+        component: ShopComponent,
+        componentProps: {
+          templateShop: restaurantData.map((v: Restaurant) => {
+            return {
+              shopName: v.storeName,
+              shopDescription: v.address,
+              logo: v.logo
+            }
+          })
         },
-      }).then(res => res.blob()).then(blob => {
-        handleRecorderData(blob)
       })
-    }
+      break
+    case ShowRightType.NAVIGATE:
+      const { location, des } = JSON.parse(content)
+      pushTemplateCard({
+        title: nodeTitle,
+        id: tokenId,
+        size: CardSize.LARGE,
+        component: NavigationComponent,
+        componentProps: {
+          location,
+          des
+        },
+      })
+      break
+    case ShowRightType.MUSIC:
+      const { music_name, url, music_singer } = JSON.parse(content)
+      pushTemplateCard({
+        title: nodeTitle,
+        id: tokenId,
+        size: CardSize.XLARGE,
+        component: MusicComponent,
+        componentProps: {
+          musicName: music_name,
+          musicUrl: url,
+          musicSinger: music_singer
+        },
+      })
+      break
   }
 }
-// 处理录音
-const handleRecorder = async () => {
-  try {
-    // 创建音频上下文和AnalyserNode
-    audioContext.value = new AudioContext()
-    analyserNode.value = audioContext.value.createAnalyser()
-    analyserNode.value.fftSize = 256;
-    // 获取媒体流
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        // 取消回音
-        echoCancellation: true,
-        // 降噪
-        noiseSuppression: true,
-        // 采样率
-        // sampleRate: 44100,
-      },
-    })
-    // 创建音频流源
-    const source = audioContext.value.createMediaStreamSource(stream)
-    source.connect(analyserNode.value)
-    // 创建媒体录音
-    mediaRecorder.value = new MediaRecorder(stream, {
-      mimeType: 'audio/webm;codecs=opus',
-      audioBitsPerSecond: 16000,
-    })
-    let chunks: Blob[] = []
-    // 监听录音停止
-    mediaRecorder.value.onstop = async () => {
-      const blob = new Blob(chunks, { type: mediaRecorder.value?.mimeType })
-      // 调用语音识别接口
-      await handleRecorderData(blob)
-      chunks = []
-    }
-    // 监听数据可用
-    mediaRecorder.value.ondataavailable = (e) => {
-      chunks.push(e.data)
-    }
-  } catch (err) {
-    hasRecorderPermission.value = false
-    console.error('获取麦克风失败', err)
-  }
-}
-
-// 处理录音返回数据
-const handleRecorderData = async (blob: Blob) => {
-  // 调用语音识别接口
-  const result: string = await arsApi(blob)
-  agentMessageList.push(
-    {
-      text: result, type: 'user'
-    },
-    {
-      text: '', type: 'agent', loading: true
-    },
-  )
-  if (currentIntentType.value === IntentType.ASR) {
-    sendIntent(IntentType.ASR, { asrText: result })
-  } else if (currentIntentType.value === IntentType.USERANSWER) {
-    sendIntent(IntentType.USERANSWER, { userAnswer: result, id: currentIntentId.value, token: currentIntenToken.value })
-    // 恢复为ASR
-    currentIntentType.value = IntentType.ASR
-  }
-  if (!isProcessing.value && playQueue.length) {
-    processPlayQueue()
-  }
-  if (!isProcessing.value && viewQueue.length) processViewQueue()
-}
-// 音量监听处理
-const { startVolumeDetection, stopVolumeDetection } = useVolumeMonitoring(analyserNode.value as AnalyserNode, handleRecorderTouchend)
-type TemplateSize = 'medium' | 'small' | 'mini'
+// 定义网格常量
+const GRID_ROWS = 3
+const CardSize = {
+  SMALL: 'small',    // 1x1
+  MEDIUM: 'medium',  // 1x2
+  LARGE: 'large',     // 1x3
+  XLARGE: 'xlarge'
+} as const
+type CardSize = typeof CardSize[keyof typeof CardSize]
+// 尺寸对应的网格占用
+const SIZE_TO_GRID = {
+  [CardSize.SMALL]: { columns: 1, rows: 1 },   // 1x1
+  [CardSize.MEDIUM]: { columns: 1, rows: 2 },  // 1x2
+  [CardSize.LARGE]: { columns: 1, rows: 3 },   // 1x3
+  [CardSize.XLARGE]: { columns: 2, rows: 3 }   // 2x3
+} as const
 interface TemplateCard {
-  size: TemplateSize
   component: string | Component
-  id: number
-  title: string
+  id: string
+  title?: string
   componentProps?: any
+
+  // 两种定位方式二选一
+  column?: [number, number] // [起始列索引, 占用列数]
+  row?: [number, number]    // [起始行索引, 占用行数]
+  size?: CardSize          // 自动定位时使用的尺寸
 }
 
-const templateShop = reactive<Shop[]>([
-  /* {
-    shopName: '商品1',
-    logo: 'https://picsum.photos/300/200?random=1',
-    shopDescription: '商品描述1'
-  },
-  {
-    shopName: '商品2',
-    logo: 'https://picsum.photos/300/200?random=2',
-    shopDescription: '商品描述1'
-  },
-  {
-    shopName: '商品3',
-    logo: 'https://picsum.photos/300/200?random=6',
-    shopDescription: '商品描述1'
-  },
-  {
-    shopName: '商品2',
-    logo: 'https://picsum.photos/300/200?random=3',
-    shopDescription: '商品描述1'
-  },
-  {
-    shopName: '商品1',
-    logo: 'https://picsum.photos/300/200?random=4',
-    shopDescription: '商品描述1'
-  },
-  {
-    shopName: '商品2',
-    logo: 'https://picsum.photos/300/200?random=5',
-    shopDescription: '商品描述1'
-  } */
-])
-const templateProduct = reactive<Product[]>([
-  /* {
-    productName: '商品1',
-    logo: 'https://picsum.photos/300/200?random=1',
-    productContent: '商品描述1',
-    productPrice: 10
-  },
-  {
-    productName: '商品1',
-    logo: 'https://picsum.photos/300/200?random=1',
-    productContent: '商品描述1',
-    productPrice: 10
-  },
-  {
-    productName: '商品1',
-    logo: 'https://picsum.photos/300/200?random=1',
-    productContent: '商品描述1',
-    productPrice: 10
-  },
-  {
-    productName: '商品1',
-    logo: 'https://picsum.photos/300/200?random=1',
-    productContent: '商品描述1',
-    productPrice: 10
-  },
-  {
-    productName: '商品1',
-    logo: 'https://picsum.photos/300/200?random=1',
-    productContent: '商品描述1',
-    productPrice: 10
-  }, */
-])
-// 今天是2025-10-30，星期五，晴天，温度25度，湿度60%
-const templateWeather = ref('')
-const templateSize: Record<TemplateSize, number> = {
-  mini: 1,
-  small: 2,
-  medium: 4,
-}
 const allCards = reactive<TemplateCard[]>([
+  {
+    id: '1',
+    // 从第1列开始占2列，从第1行开始占2行
+    column: [1, 2],
+    row: [1, 2],
+    component: ChatComponent,
+    componentProps: {
+      message: [],
+      currentMessage: {},
+    }
+  },
+  {
+    id: '2',
+    column: [1, 1],
+    row: [3, 1],
+    component: TempComponent,
+    componentProps: {
+      icon: Fan,
+      title: t('card.temperature'),
+      value: 20.5,
+      unit: '℃'
+    }
+  },
+  {
+    id: '3',
+    column: [2, 1],
+    row: [3, 1],
+    component: TempComponent,
+    componentProps: {
+      icon: BloodSugar,
+      title: t('card.humidity'),
+      value: 60,
+      unit: '%'
+    }
+  },
+  {
+    id: '5',
+    column: [3, 2],
+    row: [1, 2],
+    component: CalendarComponent,
+  },
+  {
+    id: '4',
+    column: [3, 2],
+    row: [3, 1],
+    component: BatteryComponent,
+  },
   /* {
-    id: Date.now() + Math.random(),
-    title: t('card.navigation'),
-    size: 'medium',
+    id: '6',
+    column: [3, 1],
+    row: [1, 3],
     component: NavigationComponent,
-  }, */
+    componentProps: {
+      location: '3150 Paradise Rd, Las Vegas',
+      des: 'University Medical center of Southern Nevada'
+    },
+  } */
   /* {
-    id: Date.now() + Math.random(),
-    title: t('card.photo'),
-    size: 'small',
-    component: photoComponent,
+    id: '4',
+    column: [3, 1],
+    row: [2, 1],
+    component: PhotoComponent,
     componentProps: {
       photoList: [
         {
-          image: 'https://picsum.photos/300/200?random=1',
-        },
-        {
-          image: 'https://picsum.photos/300/200?random=2',
-        },
-        {
-          image: 'https://picsum.photos/300/200?random=3',
+          description: 'dsadasdasdadds asdsadsadsadsaas asdasdasdsadasdasdasd321321rafsfdsfdsfsdfs sdf dsf sdf sf sdf sd fdsfsdfdsfsdffsdf',
+          image: 'https://picsum.photos/200/300',
+          title: ''
         }
       ]
     },
   }, */
-  /* {
-    id: Date.now() + Math.random(),
-    title: t('card.weather'),
-    size: 'medium',
-    component: WeatherComponent,
-    componentProps: {
-      templateWeather,
-    },
-  }, */
-  /* {
-    id: Date.now() + Math.random(),
-    title: t('card.music'),
-    size: 'small',
-    component: MusicComponent,
-  }, */
-  /* {
-    id: Date.now() + Math.random(),
-    title: '餐厅',
-    size: 'medium',
-    component: ShopComponent,
-    componentProps: {
-      templateShop,
-    },
-  }, */
-  /* {
-    id: Date.now() + Math.random(),
-    title: '菜单',
-    size: 'medium',
-    component: ProductComponent,
-    componentProps: {
-      templateProduct,
-    },
-  }, */
 ])
-const cardRow = screenOrientation.value ? 4 : 4
-// 计算属性，用于确定哪些卡片属于第一列，哪些属于第二列
-const firstColumnCards = computed(() => {
-  const cards: TemplateCard[] = []
-  let totalHeight = 0
-
-  for (const card of allCards) {
-    const cardHeight = templateSize[card.size]
-    if (totalHeight + cardHeight <= cardRow) {
-      cards.push(card)
-      totalHeight += cardHeight
-    } else {
-      break
+const agentCards = reactive<TemplateCard[]>([
+  {
+    id: '1',
+    column: [1, 2],
+    row: [1, 3],
+    component: ChatComponent,
+    componentProps: {
+      message: []
     }
+  },
+])
+
+const getCardGridStyle = (card: TemplateCard,) => {
+  // column: [起始列索引, 占用列数] 例如 [1, 2] 表示从第1列开始占2列
+  // row: [起始行索引, 占用行数] 例如 [2, 2] 表示从第2行开始占2行
+  if (!card.column || !card.row) {
+    return {};
   }
-  return cards
+  const [startColumn, columnSpan] = card.column;
+  const [startRow, rowSpan] = card.row;
+
+  return {
+    'grid-column': `${startColumn} / span ${columnSpan}`,
+    'grid-row': `${startRow} / span ${rowSpan}`
+  }
+}
+// 记录右侧两列的当前高度
+const rightColumnHeights = reactive({
+  col3: 0, // 第3列当前高度
+  col4: 0  // 第4列当前高度
 })
 
-const secondColumnCards = computed(() => {
-  return allCards.slice(firstColumnCards.value.length)
-})
+// 计算自动定位的函数 - 修改为右侧两列瀑布流布局
+const calculateAutoPosition = (size: CardSize, existingCards: TemplateCard[]) => {
+  const { rows: newCardRowSpan } = SIZE_TO_GRID[size]
 
-// 获取卡片的网格样式
-const getCardGridStyle = (card: TemplateCard, index: number) => {
-  const isFirstColumn = index < firstColumnCards.value.length
-  const cardHeight = templateSize[card.size]
+  // 只处理右侧的卡片（第3、4列）
+  const rightCards = existingCards.filter(card =>
+    card.column && (card.column[0] === 3 || card.column[0] === 4)
+  ).sort((a, b) => {
+    // 按添加顺序排序（假设id越大越新）
+    return parseInt(a.id) - parseInt(b.id)
+  })
 
-  if (isFirstColumn) {
-    // 计算在第一列中的位置
-    let startRow = 1
-    for (let i = 0; i < index; i++) {
-      startRow += templateSize[allCards[i].size]
-    }
-    return {
-      'grid-column': '1',
-      'grid-row': `${startRow} / span ${cardHeight}`
-    }
+  // 模拟布局过程
+  const layout = {
+    col3: [] as Array<{ id: string, rowSpan: number, startRow: number }>,
+    col4: [] as Array<{ id: string, rowSpan: number, startRow: number }>
+  }
+
+  let currentCol3Height = 0
+  let currentCol4Height = 0
+
+  // 先将新卡片放在第3列第1行
+  if (newCardRowSpan <= GRID_ROWS) {
+    layout.col3.push({
+      id: 'NEW_CARD',
+      rowSpan: newCardRowSpan,
+      startRow: 1
+    })
+    currentCol3Height = newCardRowSpan
   } else {
-    // 计算在第二列中的位置
-    const secondColumnIndex = index - firstColumnCards.value.length
-    let startRow = 1
-    for (let i = 0; i < secondColumnIndex; i++) {
-      const cardIndex = firstColumnCards.value.length + i
-      startRow += templateSize[allCards[cardIndex].size]
+    // 新卡片本身就太大，直接删除最旧卡片
+    handleColumnOverflow(rightCards)
+    return calculateAutoPosition(size, existingCards)
+  }
+
+  // 尝试排列现有卡片
+  for (const card of rightCards) {
+    if (!card.row) continue
+
+    const cardRowSpan = card.row[1]
+
+    // 先尝试放在第3列
+    if (currentCol3Height + cardRowSpan <= GRID_ROWS) {
+      layout.col3.push({
+        id: card.id,
+        rowSpan: cardRowSpan,
+        startRow: currentCol3Height + 1
+      })
+      currentCol3Height += cardRowSpan
     }
-    return {
-      'grid-column': '2',
-      'grid-row': `${startRow} / span ${cardHeight}`
+    // 第3列放不下，尝试第4列
+    else if (currentCol4Height + cardRowSpan <= GRID_ROWS) {
+      layout.col4.push({
+        id: card.id,
+        rowSpan: cardRowSpan,
+        startRow: currentCol4Height + 1
+      })
+      currentCol4Height += cardRowSpan
+    }
+    // 两列都放不下，需要删除最旧卡片
+    else {
+      handleColumnOverflow(rightCards)
+      return calculateAutoPosition(size, existingCards)
     }
   }
+
+  // 构建位置映射
+  const positionMap = new Map()
+
+  // 新卡片的位置（总是第3列第1行）
+  positionMap.set('NEW_CARD', {
+    column: [3, 1] as [number, number],
+    row: [1, newCardRowSpan] as [number, number]
+  })
+
+  // 现有卡片的位置
+  for (const item of layout.col3) {
+    if (item.id !== 'NEW_CARD') {
+      positionMap.set(item.id, {
+        column: [3, 1] as [number, number],
+        row: [item.startRow, item.rowSpan] as [number, number]
+      })
+    }
+  }
+
+  for (const item of layout.col4) {
+    positionMap.set(item.id, {
+      column: [4, 1] as [number, number],
+      row: [item.startRow, item.rowSpan] as [number, number]
+    })
+  }
+
+  return positionMap
+}
+// 完善后的添加卡片函数
+const pushTemplateCard = (newCard: Omit<TemplateCard, 'column' | 'row'> & { size: CardSize }) => {
+  // 只处理自动定位的卡片
+  if (!newCard.size) {
+    console.error('自动定位卡片必须包含 size')
+    return
+  }
+
+  // 计算所有卡片的新位置
+  const positionMap = calculateAutoPosition(newCard.size, animateCards.value)
+
+  if (!positionMap) return
+
+  // 更新现有卡片的位置
+  animateCards.value.forEach(card => {
+    if (card.column && (card.column[0] === 3 || card.column[0] === 4)) {
+      const newPosition = positionMap.get(card.id)
+      if (newPosition) {
+        card.column = newPosition.column
+        card.row = newPosition.row
+      }
+    }
+  })
+
+  // 添加新卡片
+  const newPosition = positionMap.get('NEW_CARD')
+  if (newPosition) {
+    const finalCard: TemplateCard = {
+      ...newCard,
+      column: newPosition.column,
+      row: newPosition.row
+    }
+
+    // 添加到卡片列表（插入到右侧卡片组的开头）
+    const firstRightColumnIndex = animateCards.value.findIndex(card =>
+      card.column && card.column[0] >= 3
+    )
+
+    if (firstRightColumnIndex === -1) {
+      animateCards.value.push(finalCard)
+    } else {
+      animateCards.value.splice(firstRightColumnIndex, 0, finalCard)
+    }
+  }
+
+  // 更新高度记录
+  updateColumnHeights()
+}
+const updateColumnHeights = () => {
+  rightColumnHeights.col3 = 0
+  rightColumnHeights.col4 = 0
+
+  animateCards.value.forEach(card => {
+    if (card.column && card.row) {
+      const [column] = card.column
+      const [, rowSpan] = card.row
+
+      if (column === 3) {
+        rightColumnHeights.col3 += rowSpan
+      } else if (column === 4) {
+        rightColumnHeights.col4 += rowSpan
+      }
+    }
+  })
+}
+// 检查并删除溢出卡片
+const handleColumnOverflow = (rightCards: TemplateCard[]) => {
+  if (rightCards.length === 0) return
+
+  // 找到最旧的卡片（id最小的）
+  const oldestCard = rightCards.reduce((oldest, current) => {
+    return parseInt(current.id) < parseInt(oldest.id) ? current : oldest
+  })
+
+  removeCard(oldestCard.id)
+  console.log(`删除最旧卡片: ${oldestCard.id}`)
 }
 
-// 添加卡片
-const pushTemplateCard = (newCard: TemplateCard) => {
-  /* const randomNum = Math.floor(Math.random() * 3) + 1
-  const size = ['mini', 'small', 'medium'][randomNum - 1] as 'mini' | 'small' | 'medium'
-  const newCard: TemplateCard = {
-    id: Date.now() + Math.random(),
-    title: '',
-    size: screenOrientation.value ? size : 'small',
-    component: '',
-  } */
-  // 添加到所有卡片的开头
-  allCards.unshift(newCard)
-  // 处理溢出 - 移除超出容量的卡片
-  while (needToRemoveCard()) {
-    allCards.pop()
+// 修正移除卡片方法
+const removeCard = (cardId: string) => {
+  const currentCards = animateCards.value
+  const cardIndex = currentCards.findIndex(card => card.id === cardId)
+
+  if (cardIndex !== -1) {
+    const removedCard = currentCards[cardIndex]
+
+    // 如果是右侧卡片，更新高度记录
+    if (removedCard.column && (removedCard.column[0] === 3 || removedCard.column[0] === 4) && removedCard.row) {
+      const columnKey = removedCard.column[0] === 3 ? 'col3' : 'col4'
+      rightColumnHeights[columnKey] = Math.max(0, rightColumnHeights[columnKey] - removedCard.row[1])
+    }
+
+    currentCards.splice(cardIndex, 1)
   }
 }
+/* 布局相关 */
 
-// 判断是否需要移除卡片
-const needToRemoveCard = () => {
-  // 检查两列总高度是否超过限制
-  const firstColumnHeight = firstColumnCards.value.reduce((sum, card) => sum + templateSize[card.size], 0)
-  const secondColumnHeight = secondColumnCards.value.reduce((sum, card) => sum + templateSize[card.size], 0)
-  if (!screenOrientation.value && (secondColumnHeight || firstColumnHeight >= cardRow)) {
-    return true
-  }
-  return firstColumnHeight > cardRow || secondColumnHeight > cardRow
-}
+/* const layoutComponent = ref<Component | null>(CardStacking)
+const layoutRows = {
+  CardStacking: CardStacking,
+  HorizontalScroll: HorizontalScroll,
+  Slideshow: Slideshow,
+  TimeLine: TimeLine,
+  WaterfallFlow: WaterfallFlow,
+} as const
 
-const hiddenCard = computed(() => {
-  return screenOrientation.value && mlScreen.value ? false : true
-})
+type LayoutName = keyof typeof layoutRows
+interface LayoutItem {
+  value: LayoutName
+  label: string
+} */
+/* const layoutList: LayoutItem[] = [
+  { value: 'CardStacking', label: t('layout.cardStacking') },
+  { value: 'HorizontalScroll', label: t('layout.horizontalScroll') },
+  { value: 'Slideshow', label: t('layout.slideShow') },
+  { value: 'TimeLine', label: t('layout.timeLine') },
+  { value: 'WaterfallFlow', label: t('layout.waterfallFlow') },
+]
+const toggleLayout = (layoutName: LayoutName) => {
+  layoutComponent.value = layoutRows[layoutName]
+} */
 </script>
 <style lang="scss" scoped>
-.dashboard {
-  background-image: url('@/assets/image/banner.jpg');
-  background-size: cover;
-}
-
 .hidden-scroll {
   /* IE 10+ */
   -ms-overflow-style: none;
