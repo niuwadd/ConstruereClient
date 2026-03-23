@@ -1,27 +1,13 @@
 <template>
-  <div class="flex flex-col h-full text-2xl font-bold relative portrait:w-full portrait:h-[400px]">
+  <div class="h-full text-2xl font-bold relative portrait:w-full portrait:h-[400px]">
     <div class="absolute top-0 left-0 z-[2] flex justify-center items-center w-full pb-2 backdrop-blur-[2px]">
       <h2 @click="updateScroll" class="text-center text-base">{{ $t('message.chatTitle') }}</h2>
     </div>
-    <div ref="messageScrollRef" class="min-h-[100px] flex-1 overflow-hidden">
-      <MessageList id="agentMessageList" class="pt-16 pb-28" :agentMessageList="agentMessageList"
+    <div ref="messageScrollRef" class="min-h-[100px] overflow-hidden">
+      <MessageList id="agentMessageList" class="pt-16 pb-28 h-[200px]" :agentMessageList="agentMessageList"
         @imageLoad="handleImageLoad" />
     </div>
-    <div v-if="props.isMicrophone" class="absolute bottom-0 left-0 z-[2] w-full backdrop-blur-[2px] flex justify-center">
-      <!-- <div class="w-full h-[30px] p-2 bg-white/60 rounded-lg flex items-center">
-        <input v-model="sendText" :placeholder="t('message.chatPlaceholder')"
-          class="text-base outline-none text-gray-600 flex-1 placeholder:text-sm" type="text">
-        <div class="flex gap-2 items-center">
-          <div @click="handleRecord" class="rounded-full p-1" :class="isRecording ? 'bg-[#6860ff]/50' : ''">
-            <div class="rounded-full p-1" :class="isRecording ? 'bg-[#6860ff]' : ''">
-              <Voice class="size-5" :class="isRecording ? 'fill-white' : 'fill-gray-600'" />
-            </div>
-          </div>
-          <div @click="handleSendMessage(sendText)">
-            <Send class="size-5 fill-gray-600" />
-          </div>
-        </div>
-      </div> -->
+    <div v-if="props.isMicrophone" class="absolute bottom-0 left-0 z-[2] w-full flex justify-center backdrop-blur-[2px]">
       <div class="relative">
         <div @touchstart.passive="handleRecorderTouchstart" @touchend.passive="handleRecorderTouchend"
           @contextmenu="(e) => { e.preventDefault() }"
@@ -77,8 +63,8 @@ onMounted(() => {
   handleRecorder()
   // 初始化滚动
   initBScroll()
+  console.log(messageScrollRef.value);
   setTimeout(() => {
-    return
     handleAgentMessageListChange()
   }, 1000)
 })
@@ -110,7 +96,7 @@ const handleAgentMessageListChange = () => {
       type: 'agent',
       messageType: MessageType.TEXT,
     },
-    {
+    /* {
       text: 'https://picsum.photos/200/300',
       type: 'agent',
       messageType: MessageType.IMAGE,
@@ -124,7 +110,7 @@ const handleAgentMessageListChange = () => {
       text: 'dasdsadsad',
       type: 'user',
       messageType: MessageType.TEXT,
-    }
+    } */
   )
 }
 // 监听消息列表变化
