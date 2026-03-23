@@ -162,7 +162,11 @@ function handleSocketMessage(message) {
   }
 
   try {
-    const parsedMessage = JSON.parse(message)
+    const messageJson = JSON.parse(message)
+    const parsedMessage = {
+      ...messageJson,
+      messageType: messageJson.type,
+    }
     console.log(parsedMessage)
     const { type, msg, token, id, appName, app, background } = parsedMessage
     const tokenId = token + id

@@ -1,13 +1,14 @@
 export default function useAudioConversion() {
   // 语音转文字
   const arsApi = async (blob: Blob): Promise<string> => {
+    console.log(blob);
     const X_NLS_TOKEN = '23f3c7ff8cd646d198d24ea6ec41b0f0'
     return new Promise<string>((resolve, reject) => {
       fetch('/asr?appkey=YyCBssRoMTulHOyJ', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/octet-stream',
-          'Content-Length': blob.size.toString(),
+          // 'Content-Length': blob.size.toString(),
           'X-NLS-Token': X_NLS_TOKEN,
           Host: 'nls-gateway-cn-shanghai.aliyuncs.com',
         },

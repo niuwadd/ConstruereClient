@@ -257,7 +257,7 @@ export const useMessageStore = defineStore('message', {
       } else {
         console.log('清除流程数据', id, this.messageList)
         const clearMessageFind = this.messageList.findIndex(
-          (item) => item.id === id
+          (item) => item.id === id,
         )
         if (clearMessageFind != -1) {
           this.messageList.splice(clearMessageFind, 1)

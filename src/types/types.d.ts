@@ -1,3 +1,4 @@
+import { TaskType, IntentType } from '@/types/enum'
 export interface Agent {
   name: string
   title: string

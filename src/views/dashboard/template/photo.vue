@@ -1,18 +1,16 @@
 <template>
   <div class="container">
     <div class="stack-container">
-      <!-- <div class="counter">{{ currentSlide + 1 }} / {{ slides.length }}</div> -->
       <Swiper :auto-height="true" :direction="'vertical'" :slides-per-view="1" :space-between="0" :speed="600"
-        :effect="'slide'" :grab-cursor="true" :mousewheel="true" :initial-slide="slides.length - 1"
-        :long-swipes-ratio="0.1" :short-swipes="true" :observer="true" :observe-slide-children="true"
-        :observe-parents="true" @swiper="onSwiper" @slide-change="onSlideChange" class="swiper">
+        :effect="'slide'" :initial-slide="0" :observer="true" :observe-slide-children="true" :observe-parents="true"
+        @swiper="onSwiper" @slide-change="onSlideChange" class="swiper">
         <SwiperSlide v-for="(slide, index) in slides" :key="slide.id || index">
           <img :src="slide.image" :alt="slide.title">
           <div class="slide-content">
             <h3 class="slide-title">{{ slide.title }}</h3>
             <p class="slide-desc">{{ slide.description }}</p>
           </div>
-        </SwiperSlide>
+        </SwiperSlide>l
       </Swiper>
     </div>
   </div>
@@ -70,7 +68,7 @@ watch(() => props.photoList, (newList) => {
   height: 100%;
   // height: calc(100% - 2rem);
   margin: 0 auto;
-  overflow: hidden;
+  // overflow: hidden;
   // padding: 10px;
 }
 
@@ -137,64 +135,14 @@ watch(() => props.photoList, (newList) => {
 }
 
 .swiper-slide-prev {
-  transform: translateY(100px) scale(0.95);
+  transform: translateY(160px) scale(0.95);
   opacity: 0.7;
   z-index: 1;
 }
 
 .swiper-slide-next {
-  transform: translateY(-100px) scale(0.95);
+  transform: translateY(-160px) scale(0.95);
   opacity: 0.7;
   z-index: 1;
-}
-
-/* 控制按钮 */
-.counter {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background: rgba(0, 0, 0, 0.5);
-  color: white;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 14px;
-  z-index: 10;
-  backdrop-filter: blur(5px);
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .stack-container {
-    // height: 400px;
-  }
-
-  button {
-    padding: 12px 25px;
-    font-size: 14px;
-  }
-}
-
-@media (max-width: 480px) {
-  .stack-container {
-    // height: 350px;
-  }
-
-  .slide-content {
-    padding: 15px;
-  }
-
-  .slide-title {
-    font-size: 1.2rem;
-  }
-
-  .controls {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  button {
-    width: 80%;
-    justify-content: center;
-  }
 }
 </style>

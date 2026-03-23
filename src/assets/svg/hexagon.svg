@@ -1,0 +1,39 @@
+<svg t="1772096488129" class="icon" viewBox="0 0 1024 1024" version="1.1"
+    xmlns="http://www.w3.org/2000/svg" p-id="21734" xmlns:xlink="http://www.w3.org/1999/xlink"
+    width="200" height="200" style="background: transparent;">
+
+    <defs>
+        <!-- 适配缩小后六边形的发光滤镜 -->
+        <filter id="glowEffectFinal"
+            x="-100%" y="-100%" width="300%" height="300%"
+            filterUnits="userSpaceOnUse"
+            color-interpolation-filters="sRGB">
+
+            <!-- 外层淡光晕（大模糊+低透明度） -->
+            <feGaussianBlur in="SourceAlpha" stdDeviation="300" result="blur_outer" />
+            <feFlood flood-color="#ffffff" flood-opacity="0.5" result="glow_outer" />
+            <feComposite in="glow_outer" in2="blur_outer" operator="in" result="glow_outer_out" />
+
+            <!-- 内层亮光晕（小模糊+高透明度） -->
+            <feGaussianBlur in="SourceAlpha" stdDeviation="240" result="blur_inner" />
+            <feFlood flood-color="#ffffff" flood-opacity="0.8" result="glow_inner" />
+            <feComposite in="glow_inner" in2="blur_inner" operator="in" result="glow_inner_out" />
+
+            <!-- 叠加层：光晕在外，图形在内 -->
+            <feMerge>
+                <feMergeNode in="glow_outer_out" />
+                <feMergeNode in="glow_inner_out" />
+                <feMergeNode in="SourceGraphic" />
+            </feMerge>
+        </filter>
+    </defs>
+
+    <!-- 核心修改：缩小六边形并居中，给滤镜留出发光空间 -->
+    <g transform="translate(512, 512) scale(0.5) translate(-512, -512)">
+        <path
+            d="M592.532943 19.298512c-44.370477-25.716015-116.75715-25.716015-161.116126 0l-305.923975 176.274315C81.122364 221.26584 44.929028 284.313781 44.929028 335.688308v352.617634c0 51.374526 36.193336 114.422467 80.563814 140.115481l305.923975 176.308817c44.370477 25.693014 116.75715 25.693014 161.127627 0l304.773885-176.308817c45.532068-25.693014 81.736906-88.740955 81.736906-140.115481v-352.617634c0-51.374526-36.193336-114.422467-81.736906-140.115481z"
+            p-id="21735"
+            filter="url(#glowEffectFinal)">
+        </path>
+    </g>
+</svg>

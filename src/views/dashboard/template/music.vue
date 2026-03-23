@@ -30,7 +30,6 @@
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
 import WaveSurfer from 'wavesurfer.js'
-// import Play from '@/assets/svg/play.svg'
 import Record from '@/assets/image/record.png'
 // import Music from '@/assets/image/music.png'
 const { musicUrl, musicName, musicSinger } = defineProps<{ musicUrl: string, musicName: string, musicSinger: string }>()
