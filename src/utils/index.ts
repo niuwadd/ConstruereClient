@@ -1,3 +1,5 @@
+import { MessageType } from '../types/enum'
+
 export function isBase64(str: string) {
   if (typeof str !== 'string') {
     return false
@@ -76,7 +78,7 @@ export function getTimeGreeting(t: (key: string) => string) {
  */
 export function formatTime(
   seconds: number,
-  t: (key: string) => string
+  t: (key: string) => string,
 ): string {
   if (seconds < 60) {
     return `${seconds}${t('unit.second')}`
@@ -105,7 +107,7 @@ export function formatTime(
 export function formatDistanceAdvanced(
   meters: number,
   decimalPlaces: number = 1,
-  t: (key: string) => string
+  t: (key: string) => string,
 ): string {
   if (meters < 1000) {
     return `${meters}${t('unit.meter')}`
@@ -115,4 +117,62 @@ export function formatDistanceAdvanced(
     const roundedKm = Math.round(kilometers * multiplier) / multiplier
     return `${roundedKm}${t('unit.kilometer')}`
   }
+}
+
+/**
+ * 处理TTS消息
+ * @param message 待处理的消息
+ * @returns 处理后的消息
+ */
+export const handleTTSMessage = (
+  message: string,
+): { message: string; type: MessageType } => {
+  let messageData: { message: string; type: MessageType } = {
+    message: message,
+    type: MessageType.TEXT,
+  }
+  const regexs = [
+    {
+      type: MessageType.HTML,
+      regex: /html```\s*([\s\S]*?)```/,
+    },
+    {
+      type: MessageType.MARKDOWN,
+      regex: /markdown```\s*([\s\S]*?)```/,
+    },
+    /* {
+        type: MessageType.JSON,
+        regex: /[\u4e00-\u9fff]+```([^`]+)```/
+        }, */
+    {
+      type: MessageType.JSON_RESTAURANT,
+      regex: /饭店```([^`]+)```/,
+    },
+    {
+      type: MessageType.JSON_RESTAURANT_X,
+      regex: /餐厅```([^`]+)```/,
+    },
+    {
+      type: MessageType.JSON_MENU,
+      regex: /菜单```([^`]+)```/,
+    },
+    {
+      type: MessageType.USER,
+      regex: /user```([^`]+)```/,
+    },
+    {
+      type: MessageType.WEATHER,
+      regex: /weather```([^`]+)```/,
+    },
+  ]
+  for (const item of regexs) {
+    if (message.match(item.regex)?.[1]) {
+      messageData = {
+        type: item.type,
+        message: message.match(item.regex)?.[1] || '',
+      }
+      break
+    }
+  }
+  return messageData
 }

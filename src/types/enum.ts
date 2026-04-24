@@ -75,6 +75,7 @@ export const ShowRightType = {
   RESTAURANT: 'restaurant',
   DINNER: 'dinner',
   MENU: 'menu',
+  MARKDOWN: 'markdown',
 }
 export type ShowRightType = (typeof ShowRightType)[keyof typeof ShowRightType]
 

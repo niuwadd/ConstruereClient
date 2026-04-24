@@ -7,7 +7,8 @@
       <MessageList id="agentMessageList" class="pt-16 pb-28 h-[200px]" :agentMessageList="agentMessageList"
         @imageLoad="handleImageLoad" />
     </div>
-    <div v-if="props.isMicrophone" class="absolute bottom-0 left-0 z-[2] w-full flex justify-center backdrop-blur-[2px]">
+    <div v-if="props.isMicrophone"
+      class="absolute bottom-0 left-0 z-[2] w-full flex justify-center backdrop-blur-[2px]">
       <div class="relative">
         <div @touchstart.passive="handleRecorderTouchstart" @touchend.passive="handleRecorderTouchend"
           @contextmenu="(e) => { e.preventDefault() }"
@@ -236,7 +237,7 @@ const currentIntentMsg = ref<string>('')
 const playQueue = reactive<Array<Queue>>([])
 // 显示队列
 const viewQueue = reactive<Array<Queue>>([])
-const pressTimer = ref<number | null>(null)
+const pressTimer = ref<number | null | any>(null)
 // 播放控制
 const isAnimating = ref<boolean>(false)
 // 是否有录音权限

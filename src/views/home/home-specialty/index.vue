@@ -96,7 +96,7 @@ const recorderBgRef2 = ref<HTMLElement | null>(null)
 const audioPlayRef = ref<HTMLAudioElement | null>(null)
 const scrollRef = ref<HTMLElement | null>(null)
 const hardwareScrollRef = ref<HTMLElement | null>(null)
-const pressTimer = ref<number | null>(null)
+const pressTimer = ref<number | null | any>(null)
 const isAnimating = ref<boolean>(false)
 const isMonitoring = ref<boolean>(true)
 // 是否播放
@@ -755,7 +755,7 @@ const handleRecorderData = async (blob: Blob) => {
 // 在组件的响应式数据中定义
 const volumeDetectionState = reactive({
   volumeDetectionRequestId: null as number | null,
-  timerId: null as number | null,
+  timerId: null as number | null | any,
   isFirstSentence: false,
   isMonitoring: false // 添加一个控制是否继续监测的标志
 });
