@@ -24,7 +24,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: '/dashboard/homePage',
         name: 'dashboardHomePage',
-        component: () => import('@/views/dashboard/old.vue'),
+        component: () => import('@/views/dashboard/homePage.vue'),
         meta: { transition: 'dashboardHomePage' },
       },
       {

@@ -58,7 +58,6 @@ const searchRoute = () => {
 };
 
 onMounted(async () => {
-  console.log('创建地图-----');
   window._AMapSecurityConfig = {
     securityJsCode: "4f70a8ce6b5f84616da458495103de40",
   };
@@ -74,9 +73,14 @@ onMounted(async () => {
       map = new AMap.Map("container", {
         zoom: 11,
         center: [104.09, 30.51],
-        mapStyle: "amap://styles/grey",
+        mapStyle: "amap://styles/dark",
       });
-
+      // 检查样式是否应用成功
+      setTimeout(() => {
+        if (map) {
+          console.log('Current map style:', map.getMapStyle());
+        }
+      }, 1000);
       // 初始加载时如果有起点和终点则搜索路线
       if (startPoint?.value && endPoint?.value) {
         searchRoute();
@@ -90,6 +94,10 @@ onMounted(async () => {
 // 监听 props 变化，重新搜索路线
 watch([startPoint, endPoint], ([newStartPoint, newEndPoint]) => {
   if (newStartPoint && newEndPoint) {
+    // 清除地图上的覆盖物和路线
+    if (map) {
+      map.clearMap();
+    }
     searchRoute();
   }
 });

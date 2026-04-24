@@ -471,7 +471,7 @@ const handleAudioPlay = (filePath: string): Promise<void> => {
 }
 /* 录音相关变量 */
 const audioPlayRef = ref<HTMLAudioElement | null>(null)
-const pressTimer = ref<number | null>(null)
+const pressTimer = ref<number | null | any>(null)
 const isAnimating = ref<boolean>(false)
 const isMonitoring = ref<boolean>(true)
 // 是否有录音权限
@@ -629,7 +629,7 @@ const handleRecorderTouchend = () => {
 // 在组件的响应式数据中定义
 const volumeDetectionState = reactive({
   volumeDetectionRequestId: null as number | null,
-  timerId: null as number | null,
+  timerId: null as number | null | any,
   isFirstSentence: false,
   isMonitoring: false, // 添加一个控制是否继续监测的标志
 })

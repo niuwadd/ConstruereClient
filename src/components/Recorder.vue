@@ -132,7 +132,7 @@ const handleRecorderTouchstart = () => {
       playQueue.splice(0)
     } */
   }
-  pressTimer.value = setTimeout(() => {
+  pressTimer.value = window.setTimeout(() => {
     isAnimating.value = true
     isMonitoring.value = true
     if (hasRecorderPermission.value) {
